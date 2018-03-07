@@ -18,13 +18,11 @@ package prometheus
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"math/big"
 	"math/rand"
 	"sync"
 	"time"
-	
-	"fmt"
-	//"math"
 
 	"github.com/hpb-project/ghpb/account"
 	"github.com/hpb-project/ghpb/common"
@@ -32,23 +30,21 @@ import (
 	"github.com/hpb-project/ghpb/consensus"
 	"github.com/hpb-project/ghpb/core/state"
 	"github.com/hpb-project/ghpb/core/types"
-	
-	//"github.com/hpb-project/ghpb/core"
-	
+
+	"github.com/hashicorp/golang-lru"
+	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/common/crypto"
 	"github.com/hpb-project/ghpb/common/crypto/sha3"
-	"github.com/hpb-project/ghpb/storage"
 	"github.com/hpb-project/ghpb/common/log"
-	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/network/rpc"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hpb-project/ghpb/storage"
 )
 
 const (
-	checkpointInterval = 1024 // 投票间隔
-	inmemoryHistorysnaps  = 128  // 内存中的快照个数
-	inmemorySignatures = 4096 // 内存中的签名个数
+	checkpointInterval   = 1024 // 投票间隔
+	inmemoryHistorysnaps = 128  // 内存中的快照个数
+	inmemorySignatures   = 4096 // 内存中的签名个数
 
 	wiggleTime = 500 * time.Millisecond // 延时单位
 )
@@ -64,12 +60,11 @@ var (
 	nonceAuthVote = hexutil.MustDecode("0xffffffffffffffff") // Magic nonce number to vote on adding a new signerHash
 	nonceDropVote = hexutil.MustDecode("0x0000000000000000") // Magic nonce number to vote on removing a signerHash.
 
-	uncleHash = types.CalcUncleHash(nil) // 
+	uncleHash = types.CalcUncleHash(nil) //
 
 	diffInTurn = big.NewInt(2) // 当轮到的时候难度值设置 2
-	diffNoTurn = big.NewInt(1) // 当非轮到的时候难度设置 1 
+	diffNoTurn = big.NewInt(1) // 当非轮到的时候难度设置 1
 )
-
 
 // 回掉函数
 type SignerFn func(accounts.Account, []byte) ([]byte, error)
@@ -91,7 +86,7 @@ func sigHash(header *types.Header) (hash common.Hash) {
 		header.GasLimit,
 		header.GasUsed,
 		header.Time,
-		header.Extra[:len(header.Extra)-65], 
+		header.Extra[:len(header.Extra)-65],
 		header.MixDigest,
 		header.Nonce,
 	})
@@ -99,11 +94,9 @@ func sigHash(header *types.Header) (hash common.Hash) {
 	return hash
 }
 
-
-
 // 实现引擎的Prepare函数
 func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) error {
-	
+
 	header.CoinbaseHash = common.AddressHash{}
 	header.Nonce = types.BlockNonce{}
 
@@ -136,12 +129,10 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
 		}
 		c.lock.RUnlock()
 	}
-	
-	
-	signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(c.signer.Str() + getUniqueRandom())))
 
+	signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(c.signer.Str() + getUniqueRandom())))
 	header.Random = getUniqueRandom()
-		
+
 	// Set the correct difficulty
 	// 根据 addressHash 来判断是否
 	header.Difficulty = diffNoTurn
@@ -153,7 +144,7 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
 	if len(header.Extra) < extraVanity {
 		header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
 	}
-	
+
 	header.Extra = header.Extra[:extraVanity]
 
 	if number%c.config.Epoch == 0 {
@@ -187,13 +178,13 @@ func (c *Prometheus) snapshot(chain consensus.ChainReader, number uint64, hash c
 	)
 	//CoinbaseHash
 	for snap == nil {
-		
+
 		// 直接使用内存中的，recents存部分
 		if s, ok := c.recents.Get(hash); ok {
 			snap = s.(*Historysnap)
 			break
 		}
-		
+
 		// 如果是检查点的时候，保存周期和投票周日不一致
 		if number%checkpointInterval == 0 {
 			if s, err := loadHistorysnap(c.config, c.signatures, c.db, hash); err == nil {
@@ -202,7 +193,7 @@ func (c *Prometheus) snapshot(chain consensus.ChainReader, number uint64, hash c
 				break
 			}
 		}
-		
+
 		// 首次要创建
 		if number == 0 {
 			genesis := chain.GetHeaderByNumber(0)
@@ -211,22 +202,21 @@ func (c *Prometheus) snapshot(chain consensus.ChainReader, number uint64, hash c
 			}
 
 			signers := make([]common.AddressHash, (len(genesis.ExtraHash)-extraVanity-extraSeal)/common.AddressHashLength)
-			
-			
+
 			for i := 0; i < len(signers); i++ {
-                fmt.Printf("%s", string(genesis.ExtraHash[extraVanity + i*common.AddressLength:]))
-				copy(signers[i][:], genesis.ExtraHash[extraVanity + i*common.AddressHashLength : extraVanity + (i+1)*common.AddressHashLength])
+				fmt.Printf("%s", string(genesis.ExtraHash[extraVanity+i*common.AddressLength:]))
+				copy(signers[i][:], genesis.ExtraHash[extraVanity+i*common.AddressHashLength:extraVanity+(i+1)*common.AddressHashLength])
 			}
 
-			snap = newHistorysnap(c.config, c.signatures, 0, genesis.Hash(),signers)
-			
+			snap = newHistorysnap(c.config, c.signatures, 0, genesis.Hash(), signers)
+
 			if err := snap.store(c.db); err != nil {
 				return nil, err
 			}
 			log.Trace("Stored genesis voting snapshot to disk")
 			break
 		}
-		
+
 		// 没有发现快照，开始收集Header 然后往回回溯
 		var header *types.Header
 		if len(parents) > 0 {
@@ -243,21 +233,21 @@ func (c *Prometheus) snapshot(chain consensus.ChainReader, number uint64, hash c
 				return nil, consensus.ErrUnknownAncestor
 			}
 		}
-		
+
 		headers = append(headers, header)
 		number, hash = number-1, header.ParentHash
 	}
-	
+
 	// 找到了之前的快照，然后进行处理
 	for i := 0; i < len(headers)/2; i++ {
 		headers[i], headers[len(headers)-1-i] = headers[len(headers)-1-i], headers[i]
 	}
-	
+
 	snap, err := snap.apply(headers)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 存入到缓存中
 	c.recents.Add(snap.Hash, snap)
 
@@ -270,7 +260,6 @@ func (c *Prometheus) snapshot(chain consensus.ChainReader, number uint64, hash c
 	}
 	return snap, err
 }
-
 
 // 获取当前的签名者
 func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, error) {
@@ -298,11 +287,10 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 	return signer, nil
 }
 
-
 // Prometheus 的主体结构
 type Prometheus struct {
 	config *params.PrometheusConfig // Consensus 共识配置
-	db     hpbdb.Database       // 数据库
+	db     hpbdb.Database           // 数据库
 
 	recents    *lru.ARCCache // 最近的签名
 	signatures *lru.ARCCache // 签名后的缓存
@@ -310,18 +298,18 @@ type Prometheus struct {
 	proposals map[common.AddressHash]bool // 当前的proposals
 	//proposalsHash map[common.AddressHash]bool // 当前 proposals hash
 
-	signer common.Address // 签名的 Key
+	signer     common.Address     // 签名的 Key
 	signerHash common.AddressHash // 地址的hash
-	randomStr  string  // 产生的随机数
-	signFn SignerFn       // 回调函数
-	lock   sync.RWMutex   // Protects the signerHash fields
+	randomStr  string             // 产生的随机数
+	signFn     SignerFn           // 回调函数
+	lock       sync.RWMutex       // Protects the signerHash fields
 }
 
 // 新创建
 func New(config *params.PrometheusConfig, db hpbdb.Database) *Prometheus {
-	
+
 	conf := *config
-	
+
 	//设置默认参数
 	if conf.Epoch == 0 {
 		conf.Epoch = epochLength
@@ -425,6 +413,7 @@ func (c *Prometheus) verifyHeader(chain consensus.ChainReader, header *types.Hea
 			return errInvalidDifficulty
 		}
 	}
+
 	// All basic checks passed, verify cascading fields
 	return c.verifyCascadingFields(chain, header, parents)
 }
@@ -472,8 +461,6 @@ func (c *Prometheus) verifyCascadingFields(chain consensus.ChainReader, header *
 	return c.verifySeal(chain, header, parents)
 }
 
-
-
 // VerifyUncles implements consensus.Engine, always returning an error for any
 // uncles as this consensus mechanism doesn't permit uncles.
 func (c *Prometheus) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
@@ -489,34 +476,33 @@ func (c *Prometheus) VerifySeal(chain consensus.ChainReader, header *types.Heade
 	return c.verifySeal(chain, header, nil)
 }
 
-
 // 验证封装的正确性，判断是否满足共识算法的需求
 func (c *Prometheus) verifySeal(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
 	// Verifying the genesis block is not supported
-	
+
 	number := header.Number.Uint64()
 	if number == 0 {
 		return errUnknownBlock
 	}
 	// Retrieve the snapshot needed to verify this header and cache it
 	snap, err := c.snapshot(chain, number-1, header.ParentHash, parents)
-	
+
 	if err != nil {
 		return err
 	}
 
 	// Resolve the authorization key and check against signers
 	signer, err := ecrecover(header, c.signatures)
-	
-	signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
-	
+
+	signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
+
 	if err != nil {
 		return err
 	}
 	if _, ok := snap.Signers[signerHash]; !ok {
 		return errUnauthorized
 	}
-	
+
 	for seen, recent := range snap.Recents {
 		if recent == signerHash {
 			// Signer is among recents, only fail if the current block doesn't shift it out
@@ -535,8 +521,6 @@ func (c *Prometheus) verifySeal(chain consensus.ChainReader, header *types.Heade
 	}
 	return nil
 }
-
-
 
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
 // rewards given, and returns the final block.
@@ -564,7 +548,7 @@ func (c *Prometheus) Authorize(signer common.Address, signFn SignerFn) {
 func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	header := block.Header()
 
-    log.Info("HPB Prometheus Seal is starting ")
+	log.Info("HPB Prometheus Seal is starting ")
 
 	// Sealing the genesis block is not supported
 	number := header.Number.Uint64()
@@ -578,25 +562,23 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 	// Don't hold the signerHash fields for the entire sealing procedure
 	c.lock.RLock()
 	signer, signFn := c.signer, c.signFn
-	
-	
-	
+
 	log.Info("Current seal random is" + header.Random)
-	signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
+	signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
 
 	c.lock.RUnlock()
 
 	// Bail out if we're unauthorized to sign a block
 	snap, err := c.snapshot(chain, number-1, header.ParentHash, nil)
-	// 
+	//
 	if err != nil {
 		return nil, err
 	}
-	
-	
+
 	if _, authorized := snap.Signers[signerHash]; !authorized {
 		return nil, errUnauthorized
 	}
+
 	log.Info("Proposed the random number in current round:" + header.Random)
 
 	// If we're amongst the recent signers, wait for the next block
@@ -622,7 +604,7 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 
 		log.Trace("Out-of-turn signing requested", "wiggle", common.PrettyDuration(wiggle))
 	}
-	
+
 	log.Trace("Waiting for slot to sign and propagate", "delay", common.PrettyDuration(delay))
 
 	select {
@@ -635,7 +617,7 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	//将签名后的结果返给到Extra中
 	copy(header.Extra[len(header.Extra)-extraSeal:], sighash)
 
