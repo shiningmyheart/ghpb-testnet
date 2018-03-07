@@ -21,7 +21,7 @@ import (
 	"sync"
 
 	hpb "github.com/hpb-project/ghpb/interface"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/network/rpc"
 )
 

@@ -28,7 +28,7 @@ import (
 
 	"github.com/hpb-project/ghpb/account"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/internal/debug"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/network/p2p"

@@ -22,7 +22,7 @@ import (
 
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 )
 
 // Implement our EthTest Manager

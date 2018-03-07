@@ -39,7 +39,7 @@ import (
 	"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/internal/hpbapi"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/protocol/miner"

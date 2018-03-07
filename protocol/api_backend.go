@@ -31,7 +31,7 @@ import (
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/network/rpc"
 )

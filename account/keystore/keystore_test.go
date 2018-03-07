@@ -28,7 +28,7 @@ import (
 
 	"github.com/hpb-project/ghpb/account"
 	"github.com/hpb-project/ghpb/common"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 )
 
 var testSigData = make([]byte, 32)

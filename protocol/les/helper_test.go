@@ -31,7 +31,7 @@ import (
 	"github.com/hpb-project/ghpb/core/vm"
 	"github.com/hpb-project/ghpb/common/crypto"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/protocol/les/flowcontrol"
 	"github.com/hpb-project/ghpb/protocol/light"
 	"github.com/hpb-project/ghpb/network/p2p"

@@ -30,7 +30,7 @@ import (
 	"github.com/hpb-project/ghpb/core/bloombits"
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/network/rpc"
 )

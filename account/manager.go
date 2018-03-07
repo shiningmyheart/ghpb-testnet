@@ -21,7 +21,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 )
 
 // Manager is an overarching account manager that can communicate with various

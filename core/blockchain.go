@@ -35,7 +35,7 @@ import (
 	"github.com/hpb-project/ghpb/core/vm"
 	"github.com/hpb-project/ghpb/common/crypto"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/metrics"
 	"github.com/hpb-project/ghpb/common/constant"

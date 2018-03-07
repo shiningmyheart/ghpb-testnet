@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/network/p2p"
 	"github.com/hpb-project/ghpb/network/p2p/discover"
 	"github.com/hpb-project/ghpb/network/p2p/simulations/adapters"

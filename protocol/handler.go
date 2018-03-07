@@ -34,7 +34,7 @@ import (
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/protocol/fetcher"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/network/p2p"
 	"github.com/hpb-project/ghpb/network/p2p/discover"

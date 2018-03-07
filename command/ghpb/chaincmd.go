@@ -33,7 +33,7 @@ import (
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/common/trie"
 	"github.com/syndtr/goleveldb/leveldb/util"

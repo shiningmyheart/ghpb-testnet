@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-package event_test
+package event
 
 import (
 	"fmt"
 	"sync"
 
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/eventevent"
 )
 
 // This example demonstrates how SubscriptionScope can be used to control the lifetime of

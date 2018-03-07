@@ -27,7 +27,7 @@ import (
 
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/common/mclock"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/network/p2p/discover"
 	"github.com/hpb-project/ghpb/network/p2p/discv5"

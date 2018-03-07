@@ -28,7 +28,7 @@ import (
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/types"
-	"github.com/hpb-project/ghpb/event"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/network/rpc"
 )
 
