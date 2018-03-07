@@ -666,7 +666,6 @@ type nodeStats struct {
 	Active   bool `json:"active"`
 	Syncing  bool `json:"syncing"`
 	Mining   bool `json:"mining"`
-	Hashrate int  `json:"hashrate"`
 	Peers    int  `json:"peers"`
 	GasPrice int  `json:"gasPrice"`
 	Uptime   int  `json:"uptime"`
@@ -684,7 +683,6 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 	)
 	if s.hpb != nil {
 		mining = s.hpb.Miner().Mining()
-		hashrate = int(s.hpb.Miner().HashRate())
 
 		sync := s.hpb.Downloader().Progress()
 		syncing = s.hpb.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
@@ -703,7 +701,6 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 		"stats": &nodeStats{
 			Active:   true,
 			Mining:   mining,
-			Hashrate: hashrate,
 			Peers:    s.server.PeerCount(),
 			GasPrice: gasprice,
 			Syncing:  syncing,

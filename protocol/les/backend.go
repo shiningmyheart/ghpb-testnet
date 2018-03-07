@@ -24,7 +24,6 @@ import (
 
 	"github.com/hpb-project/ghpb/account"
 	"github.com/hpb-project/ghpb/common"
-	"github.com/hpb-project/ghpb/common/hexutil"
 	"github.com/hpb-project/ghpb/consensus"
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/types"
