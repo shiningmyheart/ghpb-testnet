@@ -5470,11 +5470,6 @@ var properties = function () {
             getter: 'hpb_mining'
         }),
         new Property({
-            name: 'hashrate',
-            getter: 'hpb_hashrate',
-            outputFormatter: utils.toDecimal
-        }),
-        new Property({
             name: 'syncing',
             getter: 'hpb_syncing',
             outputFormatter: formatters.outputSyncingFormatter

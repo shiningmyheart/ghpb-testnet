@@ -142,11 +142,6 @@ func (s *LightDummyAPI) Coinbase() (common.Address, error) {
 	return common.Address{}, fmt.Errorf("not supported")
 }
 
-// Hashrate returns the POW hashrate
-func (s *LightDummyAPI) Hashrate() hexutil.Uint {
-	return 0
-}
-
 // Mining returns an indication if this node is currently mining.
 func (s *LightDummyAPI) Mining() bool {
 	return false

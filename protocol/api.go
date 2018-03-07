@@ -65,9 +65,9 @@ func (api *PublicHpbereumAPI) Coinbase() (common.Address, error) {
 	return api.Hpberbase()
 }
 
-// Hashrate returns the POW hashrate
-func (api *PublicHpbereumAPI) Hashrate() hexutil.Uint64 {
-	return hexutil.Uint64(api.e.Miner().HashRate())
+// Mining returns the miner is mining
+func (api *PublicHpbereumAPI) Mining() bool {
+	return api.e.miner.Mining()
 }
 
 // PrivateMinerAPI provides private RPC methods to control the miner.
@@ -147,11 +147,6 @@ func (api *PrivateMinerAPI) SetGasPrice(gasPrice hexutil.Big) bool {
 func (api *PrivateMinerAPI) SetHpberbase(hpberbase common.Address) bool {
 	api.e.SetHpberbase(hpberbase)
 	return true
-}
-
-// GetHashrate returns the current hashrate of the miner.
-func (api *PrivateMinerAPI) GetHashrate() uint64 {
-	return uint64(api.e.miner.HashRate())
 }
 
 // PrivateAdminAPI is the collection of Hpbereum full node-related APIs

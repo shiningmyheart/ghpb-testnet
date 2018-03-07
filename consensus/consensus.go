@@ -91,8 +91,3 @@ type Engine interface {
 	// APIs returns the RPC APIs this consensus engine provides.
 	APIs(chain ChainReader) []rpc.API
 }
-
-type PoW interface {
-	Engine
-	Hashrate() float64
-}
