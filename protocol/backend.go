@@ -31,23 +31,23 @@ import (
 	"github.com/hpb-project/ghpb/consensus"
 	"github.com/hpb-project/ghpb/consensus/prometheus"
 
+	"github.com/hpb-project/ghpb/common/constant"
+	"github.com/hpb-project/ghpb/common/log"
+	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/bloombits"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/core/vm"
+	"github.com/hpb-project/ghpb/internal/hpbapi"
+	"github.com/hpb-project/ghpb/network/p2p"
+	"github.com/hpb-project/ghpb/network/rpc"
+	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
-	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/core/event"
-	"github.com/hpb-project/ghpb/internal/hpbapi"
-	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/protocol/miner"
-	"github.com/hpb-project/ghpb/node"
-	"github.com/hpb-project/ghpb/network/p2p"
-	"github.com/hpb-project/ghpb/common/constant"
-	"github.com/hpb-project/ghpb/common/rlp"
-	"github.com/hpb-project/ghpb/network/rpc"
+	"github.com/hpb-project/ghpb/storage"
 )
 
 type LesServer interface {
@@ -306,6 +306,8 @@ func (s *Hpbereum) StartMining(local bool) error {
 			return fmt.Errorf("signer missing: %v", err)
 		}
 		prometheus.Authorize(eb, wallet.SignHash)
+	} else {
+		log.Error("Cannot start mining without prometheus", "err", s.engine)
 	}
 	if local {
 		// If local (CPU) mining is started, we can disable the transaction rejection
