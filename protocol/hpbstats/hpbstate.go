@@ -677,7 +677,6 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 	// Gather the syncing and mining infos from the local miner instance
 	var (
 		mining   bool
-		hashrate int
 		syncing  bool
 		gasprice int
 	)
