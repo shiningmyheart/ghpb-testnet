@@ -24,3 +24,5 @@ build/_vendor/pkg
 
 # IdeaIDE
 .idea
+build/bin
+build/workspace
