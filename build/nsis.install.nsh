@@ -1,11 +1,11 @@
-Name "geth ${MAJORVERSION}.${MINORVERSION}.${BUILDVERSION}" # VERSION variables set through command line arguments
+Name "ghpb ${MAJORVERSION}.${MINORVERSION}.${BUILDVERSION}" # VERSION variables set through command line arguments
 InstallDir "$InstDir"
 OutFile "${OUTPUTFILE}" # set through command line arguments
 
 # Links for "Add/Remove Programs"
-!define HELPURL "https://github.com/ethereum/go-ethereum/issues"
-!define UPDATEURL "https://github.com/ethereum/go-ethereum/releases"
-!define ABOUTURL "https://github.com/ethereum/go-ethereum#ethereum-go"
+!define HELPURL "https://github.com/hpb-project/ghpb/issues"
+!define UPDATEURL "https://github.com/hpb-project/ghpb/releases"
+!define ABOUTURL "github.com/hpb-project/ghpb"
 !define /date NOW "%Y%m%d"
 
 PageEx license
@@ -13,29 +13,29 @@ PageEx license
 PageExEnd
 
 # Install geth binary
-Section "Geth" GETH_IDX
+Section "Ghpb" GHPB_IDX
   SetOutPath $INSTDIR
-  file {{.Geth}}
+  file {{.Ghpb}}
 
   # Create start menu launcher
   createDirectory "$SMPROGRAMS\${APPNAME}"
-  createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\geth.exe" "--fast" "--cache=512"
-  createShortCut "$SMPROGRAMS\${APPNAME}\Attach.lnk" "$INSTDIR\geth.exe" "attach" "" ""
+  createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\ghpb.exe" "--fast" "--cache=512"
+  createShortCut "$SMPROGRAMS\${APPNAME}\Attach.lnk" "$INSTDIR\ghpb.exe" "attach" "" ""
   createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" ""
 
   # Firewall - remove rules (if exists)
-  SimpleFC::AdvRemoveRule "Geth incoming peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Geth outgoing peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Geth UDP discovery (UDP:30303)"
+  SimpleFC::AdvRemoveRule "Ghpb incoming peers (TCP:30303)"
+  SimpleFC::AdvRemoveRule "Ghpb outgoing peers (TCP:30303)"
+  SimpleFC::AdvRemoveRule "Ghpb UDP discovery (UDP:30303)"
 
   # Firewall - add rules
-  SimpleFC::AdvAddRule "Geth incoming peers (TCP:30303)" ""  6 1 1 2147483647 1 "$INSTDIR\geth.exe" "" "" "Hpbereum" 30303 "" "" ""
-  SimpleFC::AdvAddRule "Geth outgoing peers (TCP:30303)" ""  6 2 1 2147483647 1 "$INSTDIR\geth.exe" "" "" "Hpbereum" "" 30303 "" ""
-  SimpleFC::AdvAddRule "Geth UDP discovery (UDP:30303)" "" 17 2 1 2147483647 1 "$INSTDIR\geth.exe" "" "" "Hpbereum" "" 30303 "" ""
+  SimpleFC::AdvAddRule "Ghpb incoming peers (TCP:30303)" ""  6 1 1 2147483647 1 "$INSTDIR\ghpb.exe" "" "" "Hpbereum" 30303 "" "" ""
+  SimpleFC::AdvAddRule "Ghpb outgoing peers (TCP:30303)" ""  6 2 1 2147483647 1 "$INSTDIR\ghpb.exe" "" "" "Hpbereum" "" 30303 "" ""
+  SimpleFC::AdvAddRule "Ghpb UDP discovery (UDP:30303)" "" 17 2 1 2147483647 1 "$INSTDIR\ghpb.exe" "" "" "Hpbereum" "" 30303 "" ""
 
-  # Set default IPC endpoint (https://github.com/ethereum/EIPs/issues/147)
-  ${EnvVarUpdate} $0 "ETHEREUM_SOCKET" "R" "HKLM" "\\.\pipe\geth.ipc"
-  ${EnvVarUpdate} $0 "ETHEREUM_SOCKET" "A" "HKLM" "\\.\pipe\geth.ipc"
+  # Set default IPC endpoint
+  ${EnvVarUpdate} $0 "HPB_SOCKET" "R" "HKLM" "\\.\pipe\ghpb.ipc"
+  ${EnvVarUpdate} $0 "HPB_SOCKET" "A" "HKLM" "\\.\pipe\ghpb.ipc"
 
   # Add instdir to PATH
   Push "$INSTDIR"

@@ -46,23 +46,10 @@ var (
 	skipPrefixes = []string{
 		// boring stuff
 		"vendor/", "tests/testdata/", "build/",
-		// don't relicense vendored sources
-		"cmd/internal/browser",
-		"consensus/ethash/xor.go",
-		"crypto/bn256/",
-		"crypto/ecies/",
-		"crypto/secp256k1/curve.go",
-		"crypto/sha3/",
-		"internal/jsre/deps",
-		"log/",
-		// don't license generated files
-		"contracts/chequebook/contract/",
-		"contracts/ens/contract/",
-		"contracts/release/contract.go",
 	}
 
 	// paths with this prefix are licensed as GPL. all other files are LGPL.
-	gplPrefixes = []string{"cmd/"}
+	gplPrefixes = []string{"command/"}
 
 	// this regexp must match the entire license comment at the
 	// beginning of each file.
