@@ -30,7 +30,7 @@ import (
 
 // Constants to match up protocol versions and messages
 const (
-	hpb_v1 = 1
+	hpb_v1 = 100
 )
 
 // Official short name of the protocol used during capability negotiation.

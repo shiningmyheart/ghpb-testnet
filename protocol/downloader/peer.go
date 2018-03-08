@@ -146,8 +146,8 @@ func (p *peerConnection) Reset() {
 // FetchHeaders sends a header retrieval request to the remote peer.
 func (p *peerConnection) FetchHeaders(from uint64, count int) error {
 	// Sanity check the protocol version
-	if p.version < 62 {
-		panic(fmt.Sprintf("header fetch [eth/62+] requested on eth/%d", p.version))
+	if p.version < 100 {
+		panic(fmt.Sprintf("header fetch [hpb/100+] requested on hpb/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.headerIdle, 0, 1) {
@@ -164,8 +164,8 @@ func (p *peerConnection) FetchHeaders(from uint64, count int) error {
 // FetchBodies sends a block body retrieval request to the remote peer.
 func (p *peerConnection) FetchBodies(request *fetchRequest) error {
 	// Sanity check the protocol version
-	if p.version < 62 {
-		panic(fmt.Sprintf("body fetch [eth/62+] requested on eth/%d", p.version))
+	if p.version < 100 {
+		panic(fmt.Sprintf("body fetch [hpb/100+] requested on hpb/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.blockIdle, 0, 1) {
@@ -186,8 +186,8 @@ func (p *peerConnection) FetchBodies(request *fetchRequest) error {
 // FetchReceipts sends a receipt retrieval request to the remote peer.
 func (p *peerConnection) FetchReceipts(request *fetchRequest) error {
 	// Sanity check the protocol version
-	if p.version < 63 {
-		panic(fmt.Sprintf("body fetch [eth/63+] requested on eth/%d", p.version))
+	if p.version < 100 {
+		panic(fmt.Sprintf("body fetch [hpb/100+] requested on hpb/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.receiptIdle, 0, 1) {
@@ -208,8 +208,8 @@ func (p *peerConnection) FetchReceipts(request *fetchRequest) error {
 // FetchNodeData sends a node state data retrieval request to the remote peer.
 func (p *peerConnection) FetchNodeData(hashes []common.Hash) error {
 	// Sanity check the protocol version
-	if p.version < 63 {
-		panic(fmt.Sprintf("node data fetch [eth/63+] requested on eth/%d", p.version))
+	if p.version < 100 {
+		panic(fmt.Sprintf("node data fetch [hpb/100+] requested on hpb/%d", p.version))
 	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.stateIdle, 0, 1) {
