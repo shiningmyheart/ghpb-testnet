@@ -13,14 +13,14 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 
 Building ghpb requires both a Go (version 1.7 or later)
 
-    git clone git@github.com:hpb-project/go-hpb-private.git $GOPATH/src/github.com/hpb-project
+    git clone git@github.com:hpb-project/ghpb.git $GOPATH/src/github.com/hpb-project
 
 then
 
-    go install -a -v ./cmd/ghpb
+    go install -a -v ./command/ghpb
 or
 ```
-    cd ./github.com/hpb-project/go-hpb
+    cd ./github.com/hpb-project/ghpb
     make ghpb
 ```
 when you do this,there is a shell cmd generated at './bulid/bin',called ghpb
@@ -43,17 +43,17 @@ ghpb attach ipc://path-to-chain-directory/ghpb.ipc
 go get -u github.com/jteeuwen/go-bindata/...
 ```
 
-#### 重新生成bindata.go文件 在GoPath/src/github.com/hpb-project/go-hpb/internal/jsre/deps执行
+#### 重新生成bindata.go文件 在GoPath/src/github.com/hpb-project/ghpb/internal/jsre/deps执行
 ```
 go-bindata -nometadata -pkg deps -o bindata.go bignumber.js web3.js
 ```
 
-#### 格式化bindata.go 在GoPath/src/github.com/hpb-project/go-hpb/internal/jsre/deps执行
+#### 格式化bindata.go 在GoPath/src/github.com/hpb-project/ghpb/internal/jsre/deps执行
 ```
 gofmt -w -s bindata.go
 ```
 
 #### 重新构建后生效
 ```
-go install -a -v ./cmd/ghpb
+go install -a -v ./command/ghpb
 ```
