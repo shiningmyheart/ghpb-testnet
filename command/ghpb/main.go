@@ -105,6 +105,7 @@ var (
 		utils.GpoBlocksFlag,
 		utils.GpoPercentileFlag,
 		utils.ExtraDataFlag,
+		utils.NodeTypeFlag,
 		configFileFlag,
 	}
 

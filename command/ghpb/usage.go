@@ -140,6 +140,7 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.MaxPeersFlag,
 			utils.MaxPendingPeersFlag,
 			utils.NATFlag,
+			utils.NodeTypeFlag,
 			utils.NoDiscoverFlag,
 			utils.DiscoveryV5Flag,
 			utils.NetrestrictFlag,

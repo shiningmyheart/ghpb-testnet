@@ -19,10 +19,11 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		Genesis                 *core.Genesis `toml:",omitempty"`
 		NetworkId               uint64
 		SyncMode                downloader.SyncMode
-		LightServ               int  `toml:",omitempty"`
-		LightPeers              int  `toml:",omitempty"`
-		SkipBcVersionCheck      bool `toml:"-"`
-		DatabaseHandles         int  `toml:"-"`
+		LightServ               int            `toml:",omitempty"`
+		LightPeers              int            `toml:",omitempty"`
+		MaxPeers                int            `toml:"-"`
+		SkipBcVersionCheck      bool           `toml:"-"`
+		DatabaseHandles         int            `toml:"-"`
 		DatabaseCache           int
 		Hpberbase               common.Address `toml:",omitempty"`
 		MinerThreads            int            `toml:",omitempty"`
@@ -55,17 +56,18 @@ func (c Config) MarshalTOML() (interface{}, error) {
 
 func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
-		Genesis                 *core.Genesis `toml:",omitempty"`
+		Genesis                 *core.Genesis   `toml:",omitempty"`
 		NetworkId               *uint64
 		SyncMode                *downloader.SyncMode
-		LightServ               *int  `toml:",omitempty"`
-		LightPeers              *int  `toml:",omitempty"`
-		SkipBcVersionCheck      *bool `toml:"-"`
-		DatabaseHandles         *int  `toml:"-"`
+		LightServ               *int            `toml:",omitempty"`
+		LightPeers              *int            `toml:",omitempty"`
+		MaxPeers                *int            `toml:"-"`
+		SkipBcVersionCheck      *bool           `toml:"-"`
+		DatabaseHandles         *int            `toml:"-"`
 		DatabaseCache           *int
 		Hpberbase               *common.Address `toml:",omitempty"`
 		MinerThreads            *int            `toml:",omitempty"`
-		ExtraData               *hexutil.Bytes  `toml:",omitempty"`
+		ExtraData               hexutil.Bytes   `toml:",omitempty"`
 		GasPrice                *big.Int
 		TxPool                  *core.TxPoolConfig
 		GPO                     *gasprice.Config
@@ -107,7 +109,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		c.MinerThreads = *dec.MinerThreads
 	}
 	if dec.ExtraData != nil {
-		c.ExtraData = *dec.ExtraData
+		c.ExtraData = dec.ExtraData
 	}
 	if dec.GasPrice != nil {
 		c.GasPrice = dec.GasPrice
