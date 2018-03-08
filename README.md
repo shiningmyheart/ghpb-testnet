@@ -32,28 +32,7 @@ note: if you want to make all,maybe have some problem
 $ ghpb --identity "private hpb"  --rpcaddr 127.0.0.1  --rpc   --rpcport 8545  --maxpeers 2  --networkid 100  --datadir "./chain"  --nodiscover
 ```
 
-## Starting JavaScript Console
+## Attach to the node
 ```
 ghpb attach ipc://path-to-chain-directory/ghpb.ipc
-```
-### Develop
-
-#### 修改web3.js后需要重新生成bindata.go文件，使用go-bindata命令，安装该命令
-```
-go get -u github.com/jteeuwen/go-bindata/...
-```
-
-#### 重新生成bindata.go文件 在GoPath/src/github.com/hpb-project/ghpb/internal/jsre/deps执行
-```
-go-bindata -nometadata -pkg deps -o bindata.go bignumber.js web3.js
-```
-
-#### 格式化bindata.go 在GoPath/src/github.com/hpb-project/ghpb/internal/jsre/deps执行
-```
-gofmt -w -s bindata.go
-```
-
-#### 重新构建后生效
-```
-go install -a -v ./command/ghpb
 ```
