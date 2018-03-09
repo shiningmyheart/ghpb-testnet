@@ -175,7 +175,7 @@ type udp struct {
 	gotreply   chan reply
 
 	closing chan struct{}
-	closFlag bool
+	closed  bool
 	nat     nat.Interface
 
 	lightTab *Table
@@ -266,7 +266,6 @@ func newUDP(priv *ecdsa.PrivateKey, ourRole uint8, c conn, natm nat.Interface, n
 		ourRole:     ourRole,
 		netrestrict: netrestrict,
 		closing:     make(chan struct{}),
-		closFlag:    false,
 		gotreply:    make(chan reply),
 		addpending:  make(chan *pending),
 	}
@@ -330,11 +329,11 @@ func newUDP(priv *ecdsa.PrivateKey, ourRole uint8, c conn, natm nat.Interface, n
 }
 
 func (t *udp) close() {
-	if t.closFlag {
+	if t.closed {
 		return
 	}
 	close(t.closing)
-	t.closFlag = true
+	t.closed = true
 	t.conn.Close()
 	// TODO: wait for the loops to end.
 }
