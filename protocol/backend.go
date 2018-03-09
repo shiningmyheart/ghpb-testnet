@@ -209,6 +209,9 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (hpbdb.Data
 // CreateConsensusEngine creates the required type of consensus engine instance for an Hpbereum service
 func CreateConsensusEngine(ctx *node.ServiceContext, config *Config, chainConfig *params.ChainConfig, db hpbdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
+	if chainConfig.Prometheus == nil {
+		chainConfig.Prometheus = params.MainnetChainConfig.Prometheus
+	}
 	return prometheus.New(chainConfig.Prometheus, db)
 }
 
