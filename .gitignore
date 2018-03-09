@@ -26,3 +26,4 @@ build/_vendor/pkg
 .idea
 build/bin
 build/workspace
+chain/
