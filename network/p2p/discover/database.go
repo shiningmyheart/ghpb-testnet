@@ -50,6 +50,7 @@ type nodeDB struct {
 	self   NodeID        // Own node id to prevent adding it into the database
 	runner sync.Once     // Ensures we can start at most one expirer
 	quit   chan struct{} // Channel to signal the expiring thread to stop
+	qFlag  bool          // flag quit status
 }
 
 // Schema layout for the node database
@@ -88,6 +89,7 @@ func newMemoryNodeDB(self NodeID) (*nodeDB, error) {
 		lvl:  db,
 		self: self,
 		quit: make(chan struct{}),
+		qFlag:false,
 	}, nil
 }
 
@@ -130,6 +132,7 @@ func newPersistentNodeDB(path string, version int, self NodeID) (*nodeDB, error)
 		lvl:  db,
 		self: self,
 		quit: make(chan struct{}),
+		qFlag:false,
 	}, nil
 }
 
@@ -367,6 +370,10 @@ func nextNode(it iterator.Iterator, subkeyRoot string) *Node {
 
 // close flushes and closes the database files.
 func (db *nodeDB) close() {
+	if db.qFlag {
+		return
+	}
 	close(db.quit)
+	db.qFlag = true
 	db.lvl.Close()
 }
