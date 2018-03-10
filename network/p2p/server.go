@@ -629,7 +629,7 @@ running:
 					continue
 				}
 
-				log.Info("Adding p2p peer", "id", c.id, "name", name, "addr", c.fd.RemoteAddr())
+				log.Debug("Adding p2p peer", "id", c.id, "name", name, "addr", c.fd.RemoteAddr())
 
 				peers[c.id] = p
 				go srv.runPeer(p)
@@ -685,17 +685,17 @@ running:
 func (srv *Server) addPeerChecks(p *Peer, c *conn) bool {
 
 	if p.local == NtLight && (p.remote == NtCommitt||p.remote == NtPrecomm){
-		log.Info("Node Type check to add peer failed","local",p.local,"remote",p.remote)
+		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
 		return false
 	}
 
 	if p.local == NtCommitt && p.remote == NtLight{
-		log.Info("Node Type check to add peer failed","local",p.local,"remote",p.remote)
+		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
 		return false
 	}
 
 	if p.local == NtPrecomm && p.remote == NtLight{
-		log.Info("Node Type check to add peer failed","local",p.local,"remote",p.remote)
+		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
 		return false
 	}
 
