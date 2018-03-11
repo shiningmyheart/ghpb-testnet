@@ -376,7 +376,7 @@ func (t *dialTask) dial(srv *Server, dest *discover.Node) bool {
 
 	fd, err := srv.Dialer.Dial(dest)
 	if err != nil {
-		log.Trace("Dial error", "task", t, "err", err)
+		log.Debug("Dial error", "task", t, "err", err)
 		return false
 	}
 	mfd := newMeteredConn(fd, false)
