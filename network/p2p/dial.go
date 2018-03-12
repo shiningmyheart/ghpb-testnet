@@ -210,6 +210,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[discover.NodeID]*Peer, now 
 		case nil:
 			s.dialing[id] = t.flags
 			newtasks = append(newtasks, t)
+			log.Debug("P2P Dial add task to candidate(static)", "NodeType",Uint8ToNodeType(t.dest.Role).String(),"id", t.dest.ID, "addr", &net.TCPAddr{IP: t.dest.IP, Port: int(t.dest.TCP)})
 		}
 	}
 	// If we don't have any peers whatsoever, try to dial a random bootnode. This
@@ -221,6 +222,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[discover.NodeID]*Peer, now 
 		s.bootnodes = append(s.bootnodes, bootnode)
 
 		if addDial(dynDialedConn, bootnode) {
+			log.Debug("P2P Dial add task to candidate(bootnodes)", "NodeType",Uint8ToNodeType(bootnode.Role).String(),"id", bootnode.ID, "addr", &net.TCPAddr{IP: bootnode.IP, Port: int(bootnode.TCP)})
 			needDynDials--
 		}
 	}
@@ -233,6 +235,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[discover.NodeID]*Peer, now 
 		n := s.ntbAccess.ReadRandomNodes(s.randomNodes)
 		for i := 0; i < randomCandidates && i < n; i++ {
 			if addDial(dynDialedConn, s.randomNodes[i]) {
+				log.Debug("P2P Dial add task to candidate(rand-access)", "NodeType",Uint8ToNodeType(s.randomNodes[i].Role).String(),"id", s.randomNodes[i].ID, "addr", &net.TCPAddr{IP: s.randomNodes[i].IP, Port: int(s.randomNodes[i].TCP)})
 				needDynDials--
 			}
 		}
@@ -241,6 +244,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[discover.NodeID]*Peer, now 
 		m := s.ntbLight.ReadRandomNodes(s.randomNodes)
 		for i := 0; i < randomCandidates && i < m; i++ {
 			if addDial(dynDialedConn, s.randomNodes[i]) {
+				log.Debug("P2P Dial add task to candidate(rand-light)", "NodeType",Uint8ToNodeType(s.randomNodes[i].Role).String(),"id", s.randomNodes[i].ID, "addr", &net.TCPAddr{IP: s.randomNodes[i].IP, Port: int(s.randomNodes[i].TCP)})
 				needDynDials--
 			}
 		}
@@ -250,6 +254,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[discover.NodeID]*Peer, now 
 	i := 0
 	for ; i < len(s.lookupBuf) && needDynDials > 0; i++ {
 		if addDial(dynDialedConn, s.lookupBuf[i]) {
+			log.Debug("P2P Dial add task to candidate(lookup)", "NodeType",Uint8ToNodeType(s.lookupBuf[i].Role).String(),"id", s.lookupBuf[i].ID, "addr", &net.TCPAddr{IP: s.lookupBuf[i].IP, Port: int(s.lookupBuf[i].TCP)})
 			needDynDials--
 		}
 	}
@@ -376,9 +381,11 @@ func (t *dialTask) dial(srv *Server, dest *discover.Node) bool {
 
 	fd, err := srv.Dialer.Dial(dest)
 	if err != nil {
-		log.Trace("Dial error", "task", t, "err", err)
+		log.Debug("P2P Dial error", "task", t, "err", err)
 		return false
 	}
+
+	log.Debug("P2P Dial success","RemoteIP",dest.IP.String())
 	mfd := newMeteredConn(fd, false)
 	srv.SetupConn(mfd, t.flags, dest)
 	return true
@@ -423,18 +430,27 @@ func (t *discoverTask) Do(srv *Server) {
 	var target discover.NodeID
 	rand.Read(target[:])
 	//combine light table and access table results
+	results := srv.ntabAccess.Lookup(target)
 	if srv.local == NtLight {
-		t.results = srv.ntabAccess.Lookup(target)
-		return
+		//t.results = srv.ntabAccess.Lookup(target)
+	}else if srv.local == NtAccess {
+		results = append(results,srv.ntabLight.Lookup(target)...)
+		//t.results = srv.ntabLight.Lookup(target)
+		//t.results = append(t.results,srv.ntabAccess.Lookup(target)...)
+	}else if srv.local == NtCommitt || srv.local == NtPrecomm {
+		//t.results = srv.ntabAccess.Lookup(target)
 	}
 
-	if srv.local == NtCommitt || srv.local == NtPrecomm {
-		t.results = srv.ntabAccess.Lookup(target)
-		return
+	for i:=0; i < len(results); i++ {
+		if Uint8ToNodeType(results[i].Role) == NtPublic {
+			log.Debug("P2P Dial discover lookup", "NO",i,"NodeType",Uint8ToNodeType(results[i].Role).String(),"id", results[i].ID, "addr", &net.TCPAddr{IP: results[i].IP, Port: int(results[i].TCP)})
+			continue
+		}
+
+		t.results = append(t.results,results[i])
+		log.Debug("P2P Dial discover lookup", "NO",i,"NodeType",Uint8ToNodeType(results[i].Role).String(),"id", results[i].ID, "addr", &net.TCPAddr{IP: results[i].IP, Port: int(results[i].TCP)})
 	}
 
-	t.results = srv.ntabLight.Lookup(target)
-	t.results = append(t.results,srv.ntabAccess.Lookup(target)...)
 }
 
 func (t *discoverTask) String() string {

@@ -629,7 +629,7 @@ running:
 					continue
 				}
 
-				log.Info("Adding p2p peer", "id", c.id, "name", name, "addr", c.fd.RemoteAddr())
+				log.Debug("Adding p2p peer", "id", c.id, "name", name, "addr", c.fd.RemoteAddr())
 
 				peers[c.id] = p
 				go srv.runPeer(p)
@@ -676,7 +676,7 @@ running:
 	// is closed.
 	for len(peers) > 0 {
 		p := <-srv.delpeer
-		p.log.Trace("<-delpeer (spindown)", "remainingTasks", len(runningTasks))
+		p.log.Debug("<-delpeer (spindown)", "remainingTasks", len(runningTasks))
 		delete(peers, p.ID())
 	}
 }
@@ -685,21 +685,21 @@ running:
 func (srv *Server) addPeerChecks(p *Peer, c *conn) bool {
 
 	if p.local == NtLight && (p.remote == NtCommitt||p.remote == NtPrecomm){
-		log.Info("Node Type check to add peer failed","local",p.local,"remote",p.remote)
+		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
 		return false
 	}
 
 	if p.local == NtCommitt && p.remote == NtLight{
-		log.Info("Node Type check to add peer failed","local",p.local,"remote",p.remote)
+		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
 		return false
 	}
 
 	if p.local == NtPrecomm && p.remote == NtLight{
-		log.Info("Node Type check to add peer failed","local",p.local,"remote",p.remote)
+		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
 		return false
 	}
 
-	log.Info("Adding p2p peer", "id", c.id, "localRole",p.local,"remoteRole",p.remote)
+	//log.Info("Adding p2p peer", "id", c.id, "localRole",p.local,"remoteRole",p.remote)
 	return true
 }
 
