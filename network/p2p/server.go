@@ -699,7 +699,7 @@ func (srv *Server) addPeerChecks(p *Peer, c *conn) bool {
 		return false
 	}
 
-	log.Info("Adding p2p peer", "id", c.id, "localRole",p.local,"remoteRole",p.remote)
+	//log.Info("Adding p2p peer", "id", c.id, "localRole",p.local,"remoteRole",p.remote)
 	return true
 }
 
