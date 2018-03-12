@@ -473,9 +473,9 @@ func hashAtDistance(a common.Hash, n int) (b common.Hash) {
 	return b
 }
 
-func nodesDuplicate(nodes *[]*Node) []*Node {
+func nodesDuplicate(nodes []*Node) []*Node {
 	var x []*Node = []*Node{}
-	for _, i := range *nodes {
+	for _, i := range nodes {
 		if len(x) == 0 {
 			x = append(x, i)
 		} else {

@@ -332,9 +332,7 @@ func (tab *Table) lookup(targetID NodeID, refreshIfEmpty bool) []*Node {
 		pendingQueries--
 	}
 
-	dResult := nodesDuplicate(&result.entries)
-
-	return dResult
+	return nodesDuplicate(result.entries)
 }
 
 func (tab *Table) refresh() <-chan struct{} {

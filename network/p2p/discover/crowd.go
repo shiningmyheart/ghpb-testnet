@@ -218,7 +218,7 @@ func (cr *Crowd) keepAllLive(done chan struct{}) {
 
 	cr.mutex.Lock()
 	defer cr.mutex.Unlock()
-
+    cr.members = nodesDuplicate(cr.members)
 	rc := make(chan *Node, len(cr.members))
 	for i := range cr.members {
 		go func(node * Node) {

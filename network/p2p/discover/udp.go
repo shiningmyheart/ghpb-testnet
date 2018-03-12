@@ -739,7 +739,7 @@ func (req *findnode)sendNeibors(trans *udp, from *net.UDPAddr, table *Table, fro
 	closest := table.closestByForRole(target, bucketSize, forRole).entries
 	table.mutex.Unlock()
 
-	dClosest := nodesDuplicate(&closest)
+	dClosest := nodesDuplicate(closest)
 
 	p := neighbors{Expiration: uint64(time.Now().Add(expiration).Unix())}
 	// Send neighbors in chunks with at most maxNeighbors per packet
