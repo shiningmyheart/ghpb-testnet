@@ -739,15 +739,17 @@ func (req *findnode)sendNeibors(trans *udp, from *net.UDPAddr, table *Table, fro
 	closest := table.closestByForRole(target, bucketSize, forRole).entries
 	table.mutex.Unlock()
 
+	dClosest := nodesDuplicate(&closest)
+
 	p := neighbors{Expiration: uint64(time.Now().Add(expiration).Unix())}
 	// Send neighbors in chunks with at most maxNeighbors per packet
 	// to stay below the 1280 byte limit.
-	for i, n := range closest {
+	for i, n := range dClosest {
 		if netutil.CheckRelayIP(from.IP, n.IP) != nil {
 			continue
 		}
 		p.Nodes = append(p.Nodes, nodeToRPC(n))
-		if len(p.Nodes) == maxNeighbors || i == len(closest)-1 {
+		if len(p.Nodes) == maxNeighbors || i == len(dClosest)-1 {
 			// sendNeibors only work for table
 			trans.send(from, tableService, forRole, neighborsPacket, &p)
 			p.Nodes = p.Nodes[:0]

@@ -139,8 +139,9 @@ func (tab *Table) ReadRandomNodes(buf []*Node) (n int) {
 	// Find all non-empty buckets and get a fresh slice of their entries.
 	var buckets [][]*Node
 	for _, b := range tab.buckets {
-		if len(b.entries) > 0 {
-			buckets = append(buckets, b.entries[:])
+		fb := filterBootNodes(b.entries)
+		if len(fb) > 0 {
+			buckets = append(buckets, fb[:])
 		}
 	}
 	if len(buckets) == 0 {
@@ -216,7 +217,7 @@ func (tab *Table) Resolve(targetID NodeID) *Node {
 	// network interaction is required.
 	hash := crypto.Keccak256Hash(targetID[:])
 	tab.mutex.Lock()
-	cl := tab.closest(hash, 1)
+	cl := tab.closestByNoBootNode(hash, 1)
 	tab.mutex.Unlock()
 	if len(cl.entries) > 0 && cl.entries[0].ID == targetID {
 		return cl.entries[0]
@@ -238,7 +239,7 @@ func (tab *Table) Findout(targetID NodeID) *Node {
 	// network interaction is required.
 	hash := crypto.Keccak256Hash(targetID[:])
 	tab.mutex.Lock()
-	cl := tab.closest(hash, 1)
+	cl := tab.closestByNoBootNode(hash, 1)
 	tab.mutex.Unlock()
 	if len(cl.entries) > 0 && cl.entries[0].ID == targetID {
 		return cl.entries[0]
@@ -252,7 +253,7 @@ func (tab *Table) Findout(targetID NodeID) *Node {
 // The given target does not need to be an actual node
 // identifier.
 func (tab *Table) Lookup(targetID NodeID) []*Node {
-	return tab.lookup(targetID, true)
+	return filterBootNodes(tab.lookup(targetID, true))
 }
 
 func (tab *Table) lookup(targetID NodeID, refreshIfEmpty bool) []*Node {
@@ -330,7 +331,10 @@ func (tab *Table) lookup(targetID NodeID, refreshIfEmpty bool) []*Node {
 		}
 		pendingQueries--
 	}
-	return result.entries
+
+	dResult := nodesDuplicate(&result.entries)
+
+	return dResult
 }
 
 func (tab *Table) refresh() <-chan struct{} {
@@ -444,6 +448,21 @@ func (tab *Table) closest(target common.Hash, nresults int) *nodesByDistance {
 	return close
 }
 
+func (tab *Table) closestByNoBootNode(target common.Hash, nresults int) *nodesByDistance {
+	// This is a very wasteful way to find the closest nodes but
+	// obviously correct. I believe that tree-based buckets would make
+	// this easier to implement efficiently.
+	close := &nodesByDistance{target: target}
+	for _, b := range tab.buckets {
+		for _, n := range b.entries {
+			if n.Role != BootRole {
+				close.push(n, nresults)
+			}
+		}
+	}
+	return close
+}
+
 func (tab *Table) closestByForRole(target common.Hash, nresults int, forRole uint8) *nodesByDistance {
 	// This is a very wasteful way to find the closest nodes but
 	// obviously correct. I believe that tree-based buckets would make
@@ -544,7 +563,6 @@ func (tab *Table) bond(pinged bool, id NodeID, role uint8, addr *net.UDPAddr, tc
 		// Add the node to the table even if the bonding ping/pong
 		// fails. It will be relaced quickly if it continues to be
 		// unresponsive.
-		log.Debug("discover -> TABLE", "bond success     ", node, "TABLE ROLE", tab.roleType)
 		tab.add(node)
 		tab.db.updateFindFails(id, nodeDBDiscoverFindFails,0)
 	}

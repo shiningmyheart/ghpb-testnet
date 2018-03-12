@@ -472,3 +472,33 @@ func hashAtDistance(a common.Hash, n int) (b common.Hash) {
 	}
 	return b
 }
+
+func nodesDuplicate(nodes *[]*Node) []*Node {
+	var x []*Node = []*Node{}
+	for _, i := range *nodes {
+		if len(x) == 0 {
+			x = append(x, i)
+		} else {
+			for k, v := range x {
+				if i.ID == v.ID {
+					break
+				}
+				if k == len(x)-1 {
+					x = append(x, i)
+				}
+			}
+		}
+	}
+	return x
+}
+
+func filterBootNodes(nodes []*Node) []*Node {
+	var x []*Node = []*Node{}
+	for _, i := range nodes {
+		if i.Role == BootRole {
+			continue
+		}
+		x = append(x, i)
+	}
+	return x
+}
