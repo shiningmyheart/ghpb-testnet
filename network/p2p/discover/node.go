@@ -473,8 +473,9 @@ func hashAtDistance(a common.Hash, n int) (b common.Hash) {
 	return b
 }
 
+// remove duplicate nodes by id.
 func nodesDuplicate(nodes []*Node) []*Node {
-	var x []*Node = []*Node{}
+	var x []*Node
 	for _, i := range nodes {
 		if len(x) == 0 {
 			x = append(x, i)
@@ -483,7 +484,7 @@ func nodesDuplicate(nodes []*Node) []*Node {
 				if i.ID == v.ID {
 					break
 				}
-				if k == len(x)-1 {
+				if k == len(x) - 1 {
 					x = append(x, i)
 				}
 			}
@@ -492,8 +493,9 @@ func nodesDuplicate(nodes []*Node) []*Node {
 	return x
 }
 
+// filter out bootNodes
 func filterBootNodes(nodes []*Node) []*Node {
-	var x []*Node = []*Node{}
+	var x []*Node
 	for _, i := range nodes {
 		if i.Role == BootRole {
 			continue
