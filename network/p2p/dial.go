@@ -95,7 +95,7 @@ type discoverTable interface {
 
 }
 
-type discoverSlice interface{
+type discoverStatic interface{
 	Self() *discover.Node
 	Close()
 	Fetch() []*discover.Node

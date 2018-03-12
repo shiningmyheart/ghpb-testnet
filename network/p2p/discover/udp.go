@@ -227,8 +227,8 @@ type reply struct {
 type Gather struct {
 	LightTab     *Table
 	AccessTab    *Table
-	CommSlice    *Crowd
-	PreCommSlice *Crowd
+	CommCrowd    *Crowd
+	PreCommCrowd *Crowd
 }
 
 type commInfo struct {
@@ -309,12 +309,12 @@ func newUDP(priv *ecdsa.PrivateKey, ourRole uint8, c conn, natm nat.Interface, n
 	}
 
 	comm, err := newCrowd(ci, CommRole)
-	ga.CommSlice = comm
+	ga.CommCrowd = comm
 	if err != nil {
 		return ga, nil, err
 	}
 	pre, err := newCrowd(ci, PreCommRole)
-	ga.PreCommSlice = pre
+	ga.PreCommCrowd = pre
 	if err != nil {
 		return ga, nil, err
 	}

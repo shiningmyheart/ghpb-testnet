@@ -157,10 +157,10 @@ type Server struct {
 	lock    sync.Mutex // protects running
 	running bool
 
-	ntabLight   discoverTable
-	ntabAccess  discoverTable
-	nslcCommit  discoverSlice
-	nslcPrecom  discoverSlice
+	ntabLight      discoverTable
+	ntabAccess     discoverTable
+	nstaticCommit  discoverStatic
+	nstaticPrecom  discoverStatic
 
 	listener     net.Listener
 	ourHandshake *protoHandshake
@@ -430,10 +430,10 @@ func (srv *Server) Start() (err error) {
 		//	return err
 		//}
 
-		srv.ntabLight  = hpb_nt.LightTab
-		srv.ntabAccess = hpb_nt.AccessTab
-		srv.nslcCommit = hpb_nt.CommSlice
-		srv.nslcPrecom = hpb_nt.PreCommSlice
+		srv.ntabLight     = hpb_nt.LightTab
+		srv.ntabAccess    = hpb_nt.AccessTab
+		srv.nstaticCommit = hpb_nt.CommCrowd
+		srv.nstaticPrecom = hpb_nt.PreCommCrowd
 	}
 
 
@@ -445,10 +445,10 @@ func (srv *Server) Start() (err error) {
 	for _, n := range srv.StaticNodes {
 		switch n.Role {
 		case discover.CommRole:
-			srv.nslcCommit.Add(n)
+			srv.nstaticCommit.Add(n)
 			log.Debug("Add one committee node to discover.","NodeID",n.ID,"IP",n.IP,"Port",n.TCP)
 		case discover.PreCommRole:
-			srv.nslcPrecom.Add(n)
+			srv.nstaticPrecom.Add(n)
 			log.Debug("Add one pre-committee node to discover.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
 		default:
 			log.Debug("Type is not accept to add in static node.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
@@ -659,11 +659,11 @@ running:
 	if srv.ntabAccess != nil {
 		srv.ntabAccess.Close()
 	}
-	if srv.nslcCommit != nil {
-		srv.nslcCommit.Close()
+	if srv.nstaticCommit != nil {
+		srv.nstaticCommit.Close()
 	}
-	if srv.nslcPrecom != nil {
-		srv.nslcPrecom.Close()
+	if srv.nstaticPrecom != nil {
+		srv.nstaticPrecom.Close()
 	}
 
 
