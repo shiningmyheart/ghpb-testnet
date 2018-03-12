@@ -420,15 +420,15 @@ func (srv *Server) Start() (err error) {
 			return err
 		}
 
-		if err := hpb_nt.CommSlice.SetFallbackNodes(srv.BootstrapNodes); err != nil {
-			log.Error("P2P server committee slice set fallback nodes error")
-			return err
-		}
+		//if err := hpb_nt.CommSlice.SetFallbackNodes(srv.StaticNodes); err != nil {
+		//	log.Error("P2P server committee slice set fallback nodes error")
+		//	return err
+		//}
 
-		if err := hpb_nt.PreCommSlice.SetFallbackNodes(srv.BootstrapNodes); err != nil {
-			log.Error("P2P server pre-committee slice  set fallback nodes error")
-			return err
-		}
+		//if err := hpb_nt.PreCommSlice.SetFallbackNodes(srv.StaticNodes); err != nil {
+		//	log.Error("P2P server pre-committee slice  set fallback nodes error")
+		//	return err
+		//}
 
 		srv.ntabLight  = hpb_nt.LightTab
 		srv.ntabAccess = hpb_nt.AccessTab
