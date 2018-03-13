@@ -57,6 +57,8 @@ var (
 	blockReceiptsPrefix = []byte("r") // blockReceiptsPrefix + num (uint64 big endian) + hash -> block receipts
 	lookupPrefix        = []byte("l") // lookupPrefix + hash -> transaction/receipt lookup metadata
 	bloomBitsPrefix     = []byte("B") // bloomBitsPrefix + bit (uint16 big endian) + section (uint64 big endian) + hash -> bloom bits
+	randomPrefix        = []byte("random") // randomPrefix + num (uint64 big endian) + hash -> header
+
 
 	preimagePrefix = "secure-key-"              // preimagePrefix + hash -> preimage
 	configPrefix   = []byte("hpb-config-") // config prefix for the db
@@ -97,6 +99,26 @@ func GetCanonicalHash(db DatabaseReader, number uint64) common.Hash {
 	}
 	return common.BytesToHash(data)
 }
+
+// GetRandom
+func GetRandom(db DatabaseReader) string {
+	data, _ := db.Get(randomPrefix)
+	
+	if len(data) == 0 {
+		return ""
+	}
+	return string(data[:])
+}
+
+// WriteRandom
+func WriteRandom(db hpbdb.Putter, rand string) error {
+	if err := db.Put(randomPrefix, []byte(rand)); err != nil {
+		log.Crit("Failed to store random string", "err", err)
+	}
+	return nil
+}
+
+
 
 // missingNumber is returned by GetBlockNumber if no header with the
 // given block hash has been stored in the database

@@ -72,7 +72,12 @@ func (api *API) GetSigners(number *rpc.BlockNumber) ([]common.AddressHash, error
 }
 
 func (api *API) GetPrivateRandom() (string) {	
-	return getUniqueRandom()
+	rand := api.chain.GetRandom()
+	if(rand ==""){
+		rand = getUniqueRandom()
+	}
+	return rand
+	//return api.chain.GetRandom()
 }
 
 func (api *API) Proposals() map[common.AddressHash]bool {

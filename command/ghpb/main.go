@@ -23,7 +23,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-	"time"
+	"time" 
 
 	"github.com/hpb-project/ghpb/account"
 	"github.com/hpb-project/ghpb/account/keystore"
@@ -133,6 +133,7 @@ func init() {
 	app.Commands = []cli.Command{
 		// See chaincmd.go:
 		initCommand,
+		initrandomCommand,
 		importCommand,
 		exportCommand,
 		copydbCommand,

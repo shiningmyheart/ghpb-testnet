@@ -25,6 +25,7 @@ import (
 	"sync/atomic"
 	"time"
 
+
 	"github.com/hpb-project/ghpb/command/utils"
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/console"
@@ -58,6 +59,21 @@ participating.
 
 It expects the genesis file as argument.`,
 	}
+	
+	initrandomCommand = cli.Command{
+		Action:    utils.MigrateFlags(initRand),
+		Name:      "initrand",
+		Usage:     "Bootstrap and initialize a random string",
+		ArgsUsage: "<randomStr>",
+		Flags: []cli.Flag{
+			utils.DataDirFlag,
+			utils.LightModeFlag,
+		},
+		Category: "BLOCKCHAIN COMMANDS",
+		Description: `
+The init command initializes a new random string and definition for the network.`,
+	}
+	
 	importCommand = cli.Command{
 		Action:    utils.MigrateFlags(importChain),
 		Name:      "import",
@@ -171,6 +187,34 @@ func initGenesis(ctx *cli.Context) error {
 		}
 		log.Info("Successfully wrote genesis state", "database", name, "hash", hash)
 	}
+	return nil
+}
+
+
+func initRand(ctx *cli.Context) error {
+	// Make sure we have a valid genesis JSON
+	randomStr := ctx.Args().First()
+	if len(randomStr) == 0 {
+		utils.Fatalf("the lenth of randomStr must great than 0")
+	}
+
+	// Open an initialise both full and light databases
+	stack := makeFullNode(ctx)
+	
+	for _, name := range []string{"chaindata", "lightchaindata"} {
+		chaindb, err := stack.OpenDatabase(name, 0, 0)
+	
+		if err != nil {
+			utils.Fatalf("Failed to open database: %v", err)
+		}
+		werr := core.WriteRandom(chaindb, randomStr)
+		
+		if werr != nil {
+			utils.Fatalf("Failed to random string: %v", werr)
+		}
+		log.Info("Successfully wrote random string", "string", randomStr)
+	}
+	
 	return nil
 }
 

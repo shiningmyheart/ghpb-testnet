@@ -380,6 +380,15 @@ func (hc *HeaderChain) GetHeaderByNumber(number uint64) *types.Header {
 	return hc.GetHeader(hash, number)
 }
 
+
+// GetHeaderByNumber retrieves a block header from the database by number,
+// caching it (associated with its hash) if found.
+func (hc *HeaderChain) GetRandom() string {
+	rand := GetRandom(hc.chainDb)
+	return rand
+}
+
+
 // CurrentHeader retrieves the current head header of the canonical chain. The
 // header is retrieved from the HeaderChain's internal cache.
 func (hc *HeaderChain) CurrentHeader() *types.Header {

@@ -984,6 +984,8 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 			log.Debug("Inserted new block", "number", block.Number(), "hash", block.Hash(), "uncles", len(block.Uncles()),
 				"txs", len(block.Transactions()), "gas", block.GasUsed(), "elapsed", common.PrettyDuration(time.Since(bstart)))
 
+			log.Info("Inserted new block", "number", block.Number(), "hash", block.Hash())
+			
 			coalescedLogs = append(coalescedLogs, logs...)
 			blockInsertTimer.UpdateSince(bstart)
 			events = append(events, ChainEvent{block, block.Hash(), logs})
@@ -1000,6 +1002,9 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 		stats.usedGas += usedGas.Uint64()
 		stats.report(chain, i)
 	}
+	
+	
+	
 	// Append a single chain head event if we've progressed the chain
 	if lastCanon != nil && bc.LastBlockHash() == lastCanon.Hash() {
 		events = append(events, ChainHeadEvent{lastCanon})
@@ -1348,6 +1353,14 @@ func (bc *BlockChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []com
 func (bc *BlockChain) GetHeaderByNumber(number uint64) *types.Header {
 	return bc.hc.GetHeaderByNumber(number)
 }
+
+// GetHeaderByNumber retrieves a block header from the database by number,
+// caching it (associated with its hash) if found.
+func (bc *BlockChain) GetRandom() string {
+	return bc.hc.GetRandom()
+}
+
+
 
 // Config retrieves the blockchain's chain configuration.
 func (bc *BlockChain) Config() *params.ChainConfig { return bc.config }
