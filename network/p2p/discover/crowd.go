@@ -41,7 +41,6 @@ type Crowd struct {
 	keepSlots chan struct{} // limits total number of active bonding processes
 	keepMu    sync.Mutex
 	keeping   map[NodeID]*bondproc
-	db        *nodeDB
 	net       transport
 	self      *Node
 
@@ -91,16 +90,12 @@ func (cr *Crowd) Add(n *Node) {
 }
 
 func (cr *Crowd) Clear() {
-	for _, m := range cr.members {
-		cr.db.deleteNode(m.ID)
-	}
 	cr.mutex.Lock()
 	defer cr.mutex.Unlock()
 	cr.members = make([] *Node, 0)
 }
 
 func (cr *Crowd) Delete(n *Node) {
-	cr.db.deleteNode(n.ID)
 	cr.mutex.Lock()
 	defer cr.mutex.Unlock()
 	var index = 0
@@ -138,7 +133,6 @@ func newCrowd (ci commInfo, roleType uint8) (*Crowd, error) {
 		net:        ci.udpSt,
 		keepSlots:  make(chan struct{}, maxConcurrencyPingPongs),
 		keeping:    make(map[NodeID]*bondproc),
-		db:         ci.lvlDb,
 		roleType:   roleType,
 		self:       NewNode(ci.ourId, ci.ourRole, ci.ourAddr.IP, uint16(ci.ourAddr.Port), uint16(ci.ourAddr.Port)),
 
@@ -150,8 +144,6 @@ func newCrowd (ci commInfo, roleType uint8) (*Crowd, error) {
 	for i := 0; i < cap(Crowd.keepSlots); i++ {
 		Crowd.keepSlots <- struct{}{}
 	}
-
-	Crowd.loadFromDB(ci.lvlDb, roleType)
 
 	go Crowd.keepLiveLoop()
 
@@ -199,7 +191,6 @@ loop:
 	for _, ch := range waiting {
 		close(ch)
 	}
-	cr.db.close()
 	close(cr.closed)
 }
 
@@ -277,9 +268,6 @@ func (cr *Crowd) keepLive(pinged bool, id NodeID, role uint8, addr *net.UDPAddr,
 		return nil, result
 	}
 	node := w.n
-	if node != nil {
-		cr.db.updateLastPong(id, nodeDBCommitteePong, time.Now())
-	}
 	return node, result
 }
 
@@ -298,24 +286,13 @@ func (cr *Crowd) pingPong(w *bondproc, pinged bool, id NodeID, role uint8, addr 
 	}
 	// keeping succeeded, update the node database.
 	w.n = NewNode(id, role, addr.IP, uint16(addr.Port), tcpPort)
-	cr.db.updateNode(w.n, nodeDBCommitteeRoot)
 	close(w.done)
 }
 
 func (cr *Crowd) ping(id NodeID, role uint8, addr *net.UDPAddr) error {
-	cr.db.updateLastPing(id, nodeDBCommitteePing, time.Now())
 	if err := cr.net.ping(id, crowdService, role, cr.roleType, addr); err != nil {
 		return err
 	}
-	cr.db.updateLastPong(id, nodeDBCommitteePong, time.Now())
 
-	// TODO by xujl: Whether to reuse KAD DB timeout Mechanism
-	cr.db.ensureExpirer(nodeDBCommitteeRoot, nodeDBCommitteePong)
 	return nil
-}
-
-func (cr *Crowd) loadFromDB(db *nodeDB, forRole uint8) {
-	if db == nil {
-		return
-	}
 }
