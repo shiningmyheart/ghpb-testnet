@@ -171,6 +171,8 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 	td := pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
 
 	pHead, pTd := peer.Head()
+	
+	// 如果小于零，则没有必要进行同步
 	if pTd.Cmp(td) <= 0 {
 		return
 	}
