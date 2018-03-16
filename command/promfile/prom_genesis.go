@@ -128,9 +128,9 @@ func (p *prometh) makeGenesis() {
 	address_hashes := make([]common.AddressHash, (len(signers)/common.AddressLength)*common.AddressHashLength)
 
 	for i, signer := range signers {
-		fmt.Println("test %d", randStrs[i])
+		fmt.Println("randStrs: %s", randStrs[len(signers)-i-1],"signer:",signer.Hex())
 		//address_hashes = append(address_hashes, common.BytesToAddressHash(p.fnv_hash([]byte(signer.Str() + randStr))))
-		address_hashes = append(address_hashes, common.BytesToAddressHash(p.fnv_hash([]byte(signer.Str() + randStrs[i]))))
+		address_hashes = append(address_hashes, common.BytesToAddressHash(p.fnv_hash([]byte(signer.Str() + randStrs[len(signers)-i-1]))))
 		//fmt.Println("test %d",address_hashes)
 	}
 
@@ -227,7 +227,7 @@ func (p *prometh) manageGenesis() {
 		fmt.Println()
 		fmt.Printf("Which file to save the genesis into? (default = %s.json)\n", p.network)
 
-		fmt.Printf("%s", p.conf.genesis)
+		//fmt.Printf("%s", p.conf.genesis)
 
 		out, _ := json.MarshalIndent(p.conf.genesis, "", "  ")
 

@@ -30,6 +30,8 @@ import (
 	"github.com/hashicorp/golang-lru"
 	//"github.com/hpb-project/ghpb/common/log"
 	
+	"github.com/hpb-project/ghpb/consensus"
+
 	//"strconv"
 
 )
@@ -234,7 +236,7 @@ func (s *Historysnap) signers() []common.AddressHash {
 
 // apply creates a new authorization snapshot by applying the given headers to
 // the original one.
-func (s *Historysnap) apply(headers []*types.Header) (*Historysnap, error) {
+func (s *Historysnap) apply(headers []*types.Header,chain consensus.ChainReader) (*Historysnap, error) {
 	// Allow passing in no headers for cleaner code
 	
 	// 如果头部为空，直接返回
@@ -275,7 +277,11 @@ func (s *Historysnap) apply(headers []*types.Header) (*Historysnap, error) {
 		// 获取当前header是由谁打包的，从签名中还原
 		signer, err := ecrecover(header, s.sigcache)
 
-		signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + getUniqueRandom())))
+	    rand := chain.GetRandom()
+	    if(rand == ""){
+	    	rand = getUniqueRandom()
+	    }
+		signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + rand)))
 		
 		if err != nil {
 			return nil, err
