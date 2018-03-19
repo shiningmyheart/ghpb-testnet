@@ -621,7 +621,7 @@ running:
 				p.remote = srv.getRemoteNodeType(c.id)
 
 				if p.remote == NtUnknown{
-					log.Error("Could not find remote node type","id",c.id, "name", name, "addr", c.fd.RemoteAddr())
+					log.Debug("Could not find remote node type","id",c.id, "name", name, "addr", c.fd.RemoteAddr())
 					continue
 				}
 

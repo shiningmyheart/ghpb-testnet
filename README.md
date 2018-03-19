@@ -9,23 +9,29 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 
 
 
-## Building the source
+## Building the source (requires a Go version 1.7 or later)
 
-Building ghpb requires both a Go (version 1.7 or later)
+###Clone source
+```
+    git clone git@github.com:hpb-project/ghpb-testnet.git $GOPATH/src/github.com/hpb-project/ghpb
+```
 
-    git clone git@github.com:hpb-project/ghpb.git $GOPATH/src/github.com/hpb-project
-
-then
-
+###Building ghpb
+```
     go install -a -v ./command/ghpb
+```
 or
 ```
-    cd ./github.com/hpb-project/ghpb
+    cd $GOPATH/src/github.com/hpb-project/ghpb
     make ghpb
 ```
-when you do this,there is a shell cmd generated at './bulid/bin',called ghpb
 
-note: if you want to make all,maybe have some problem
+###Building promfile
+
+## Init with genesis file
+```
+$ geth --datadir <some/location/where/to/create/chain> init genesis.json
+```
 
 ## Running ghpb
 ```
