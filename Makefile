@@ -16,6 +16,16 @@ ghpb:
 	@echo "Done building."
 	@echo "Run \"$(GOBIN)/ghpb\" to launch ghpb."
 
+bootnode:
+	build/env.sh go run build/ci.go install ./command/bootnode
+	@echo "Done building."
+	@echo "Run \"$(GOBIN)/bootnode\" to launch bootnode."
+
+promfile:
+	build/env.sh go run build/ci.go install ./command/promfile
+	@echo "Done building."
+	@echo "Run \"$(GOBIN)/promfile\" to launch promfile."
+
 all:
 	build/env.sh go run build/ci.go install
 
