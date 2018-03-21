@@ -16,7 +16,7 @@
 
 package params
 
-// MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
+// MainnetBootnodes are the hnode URLs of the P2P bootstrap nodes running on
 // the main Hpb network.
 var MainnetBootnodes = []string{
 	// Hpbereum Foundation Go Bootnodes
@@ -26,7 +26,7 @@ var MainnetBootnodes = []string{
 	"hnode://af6568c2913a99401fa567182a39f89bad7a0a273d2d7ba5a4ec1d02ad9c790c3be3f17ac92da84c5a9ed604cb7d44482783c85792d587f2bfc42b1dccd3d7e5&1@47.92.26.84:30301",
 }
 
-// TestnetBootnodes are the enode URLs of the P2P bootstrap nodes running on the
+// TestnetBootnodes are the hnode URLs of the P2P bootstrap nodes running on the
 // Ropsten test network.
 var TestnetBootnodes = []string{
 }

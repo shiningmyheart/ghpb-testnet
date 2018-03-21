@@ -71,11 +71,11 @@ var (
 	debExecutables = []debExecutable{
 		{
 			Name:        "bootnode",
-			Description: "Ethereum bootnode.",
+			Description: "go-hpb bootnode.",
 		},
 		{
 			Name:        "ghpb",
-			Description: "Hpbereum CLI client.",
+			Description: "go-hpb CLI client.",
 		},
 		{
 			Name:        "promfile",
@@ -135,12 +135,16 @@ func doInstall(cmdline []string) {
 
 	// Check Go version. People regularly open issues about compilation
 	// failure with outdated Go. This should save them the trouble.
-	if runtime.Version() < "go1.7" && !strings.Contains(runtime.Version(), "devel") {
+	var minor int
+	fmt.Sscanf(strings.TrimPrefix(runtime.Version(), "go1."), "%d", &minor)
+
+	if minor < 7 && !strings.Contains(runtime.Version(), "devel"){
 		log.Println("You have Go version", runtime.Version())
 		log.Println("go-hpb requires at least Go version 1.7 and cannot")
 		log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
 		os.Exit(1)
 	}
+
 	// Compile packages given as arguments, or everything if there are no arguments.
 	packages := []string{"./..."}
 	if flag.NArg() > 0 {

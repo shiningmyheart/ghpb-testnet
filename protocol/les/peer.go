@@ -45,7 +45,7 @@ type peer struct {
 
 	rw p2p.MsgReadWriter
 
-	version int    // Protocol version negotiated
+	version uint    // Protocol version negotiated
 	network uint64 // Network ID being on
 
 	id string
@@ -66,7 +66,7 @@ type peer struct {
 	fcCosts        requestCostTable
 }
 
-func newPeer(version int, network uint64, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
+func newPeer(version uint, network uint64, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
 	id := p.ID()
 
 	return &peer{
@@ -384,7 +384,7 @@ func (p *peer) Handshake(td *big.Int, head common.Hash, headNum uint64, genesis 
 	if rNetwork != p.network {
 		return errResp(ErrNetworkIdMismatch, "%d (!= %d)", rNetwork, p.network)
 	}
-	if int(rVersion) != p.version {
+	if uint(rVersion) != p.version {
 		return errResp(ErrProtocolVersionMismatch, "%d (!= %d)", rVersion, p.version)
 	}
 	if server != nil {
