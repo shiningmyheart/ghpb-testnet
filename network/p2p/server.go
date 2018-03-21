@@ -963,7 +963,7 @@ type NodeInfo struct {
 	ID    string `json:"id"`    // Unique node identifier (also the encryption key)
 	Name  string `json:"name"`  // Name of the node, including client type, version, OS, custom data
 	Local string `json:"local"` // Local node type
-	Enode string `json:"hnode"` // Enode URL for adding this peer from remote peers
+	Hnode string `json:"hnode"` // Hnode URL for adding this peer from remote peers
 	IP    string `json:"ip"`    // IP address of the node
 	Ports struct {
 		Discovery int `json:"discovery"` // UDP listening port for discovery protocol
@@ -981,7 +981,7 @@ func (srv *Server) NodeInfo() *NodeInfo {
 	info := &NodeInfo{
 		Name:       srv.Name,
 		Local:      srv.local.String(),
-		Enode:      node.String(),
+		Hnode:      node.String(),
 		ID:         node.ID.String(),
 		IP:         node.IP.String(),
 		ListenAddr: srv.ListenAddr,
