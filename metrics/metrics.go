@@ -26,6 +26,10 @@ import (
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/rcrowley/go-metrics"
 	"github.com/rcrowley/go-metrics/exp"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/deathowl/go-metrics-prometheus"
+	"net/http"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // MetricsEnabledFlag is the CLI flag name to use to enable metrics collections.
@@ -44,7 +48,19 @@ func init() {
 			Enabled = true
 		}
 	}
-	exp.Exp(metrics.DefaultRegistry)
+	prometheusRegistry := prometheus.NewRegistry()
+	prometheusRegistry.MustRegister(prometheus.NewProcessCollector(os.Getpid(), ""))
+	prometheusRegistry.MustRegister(prometheus.NewGoCollector())
+	metricsRegistry := metrics.DefaultRegistry
+	pClient := prometheusmetrics.NewPrometheusProvider(metricsRegistry, "ghpb", "", prometheusRegistry, 1*time.Second)
+	go pClient.UpdatePrometheusMetrics()
+	exp.Exp(metricsRegistry)
+	go func() {
+		http.Handle("/metrics", promhttp.InstrumentMetricHandler(
+			prometheusRegistry, promhttp.HandlerFor(prometheusRegistry, promhttp.HandlerOpts{}),
+		))
+		http.ListenAndServe("0.0.0.0:8080", nil)
+	}()
 }
 
 // NewCounter create a new metrics Counter, either a real one of a NOP stub depending
@@ -53,7 +69,7 @@ func NewCounter(name string) metrics.Counter {
 	if !Enabled {
 		return new(metrics.NilCounter)
 	}
-	return metrics.GetOrRegisterCounter(name, metrics.DefaultRegistry)
+	return metrics.GetOrRegisterCounter(strings.NewReplacer("/","_").Replace(name), metrics.DefaultRegistry)
 }
 
 // NewMeter create a new metrics Meter, either a real one of a NOP stub depending
@@ -62,7 +78,7 @@ func NewMeter(name string) metrics.Meter {
 	if !Enabled {
 		return new(metrics.NilMeter)
 	}
-	return metrics.GetOrRegisterMeter(name, metrics.DefaultRegistry)
+	return metrics.GetOrRegisterMeter(strings.NewReplacer("/","_").Replace(name), metrics.DefaultRegistry)
 }
 
 // NewTimer create a new metrics Timer, either a real one of a NOP stub depending
@@ -71,7 +87,7 @@ func NewTimer(name string) metrics.Timer {
 	if !Enabled {
 		return new(metrics.NilTimer)
 	}
-	return metrics.GetOrRegisterTimer(name, metrics.DefaultRegistry)
+	return metrics.GetOrRegisterTimer(strings.NewReplacer("/","_").Replace(name), metrics.DefaultRegistry)
 }
 
 // CollectProcessMetrics periodically collects various metrics about the running
@@ -89,17 +105,17 @@ func CollectProcessMetrics(refresh time.Duration) {
 		diskstats[i] = new(DiskStats)
 	}
 	// Define the various metrics to collect
-	memAllocs := metrics.GetOrRegisterMeter("system/memory/allocs", metrics.DefaultRegistry)
-	memFrees := metrics.GetOrRegisterMeter("system/memory/frees", metrics.DefaultRegistry)
-	memInuse := metrics.GetOrRegisterMeter("system/memory/inuse", metrics.DefaultRegistry)
-	memPauses := metrics.GetOrRegisterMeter("system/memory/pauses", metrics.DefaultRegistry)
+	memAllocs := NewMeter("system/memory/allocs")
+	memFrees := NewMeter("system/memory/frees")
+	memInuse := NewMeter("system/memory/inuse")
+	memPauses := NewMeter("system/memory/pauses")
 
 	var diskReads, diskReadBytes, diskWrites, diskWriteBytes metrics.Meter
 	if err := ReadDiskStats(diskstats[0]); err == nil {
-		diskReads = metrics.GetOrRegisterMeter("system/disk/readcount", metrics.DefaultRegistry)
-		diskReadBytes = metrics.GetOrRegisterMeter("system/disk/readdata", metrics.DefaultRegistry)
-		diskWrites = metrics.GetOrRegisterMeter("system/disk/writecount", metrics.DefaultRegistry)
-		diskWriteBytes = metrics.GetOrRegisterMeter("system/disk/writedata", metrics.DefaultRegistry)
+		diskReads = NewMeter("system/disk/readcount")
+		diskReadBytes = NewMeter("system/disk/readdata")
+		diskWrites = NewMeter("system/disk/writecount")
+		diskWriteBytes = NewMeter("system/disk/writedata")
 	} else {
 		log.Debug("Failed to read disk metrics", "err", err)
 	}
