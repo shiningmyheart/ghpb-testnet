@@ -48,7 +48,7 @@ const (
 	softResponseLimit = 2 * 1024 * 1024 // Target maximum size of returned blocks, headers or node data.
 	estHeaderRlpSize  = 500             // Approximate size of an RLP encoded block header
 
-	ethVersion = 63 // equivalent eth version for the downloader
+	hpbVersion = common.ProtocolV111       // equivalent hpb version for the downloader
 
 	MaxHeaderFetch       = 192 // Amount of block headers to be fetched per retrieval request
 	MaxBodyFetch         = 32  // Amount of block bodies to be fetched per retrieval request
@@ -158,7 +158,7 @@ func NewProtocolManager(chainConfig *params.ChainConfig, lightSync bool, network
 			Length:  ProtocolLengths[i],
 			Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
 				var entry *poolEntry
-				peer := manager.newPeer(int(version), networkId, p, rw)
+				peer := manager.newPeer(version, networkId, p, rw)
 				if manager.serverPool != nil {
 					addr := p.RemoteAddr().(*net.TCPAddr)
 					entry = manager.serverPool.connect(peer, addr.IP, uint16(addr.Port))
@@ -248,7 +248,7 @@ func (pm *ProtocolManager) Stop() {
 	log.Info("Light Hpbereum protocol stopped")
 }
 
-func (pm *ProtocolManager) newPeer(pv int, nv uint64, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
+func (pm *ProtocolManager) newPeer(pv uint, nv uint64, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
 	return newPeer(pv, nv, p, newMeteredMsgWriter(rw))
 }
 
@@ -896,7 +896,7 @@ func (d *downloaderPeerNotify) registerPeer(p *peer) {
 		manager: pm,
 		peer:    p,
 	}
-	pm.downloader.RegisterLightPeer(p.id, ethVersion, pc)
+	pm.downloader.RegisterLightPeer(p.id, hpbVersion, pc)
 }
 
 func (d *downloaderPeerNotify) unregisterPeer(p *peer) {

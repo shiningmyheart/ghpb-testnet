@@ -26,13 +26,8 @@ import (
 	"github.com/hpb-project/ghpb/common/rlp"
 )
 
-// Constants to match up protocol versions and messages
-const (
-	lhpbv1 = 1
-)
-
 // Supported versions of the les protocol (first is primary).
-var ProtocolVersions = []uint{lhpbv1}
+var ProtocolVersions = []uint{common.SubProtocolV111}
 
 // Number of implemented message corresponding to different protocol versions.
 var ProtocolLengths = []uint64{15}
