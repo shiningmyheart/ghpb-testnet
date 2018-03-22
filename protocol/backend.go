@@ -133,7 +133,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Hpbereum, error) {
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks),
 	}
 
-	log.Info("Initialising Hpbereum protocol", "versions", ProtocolVersions, "network", config.NetworkId)
+	log.Info("Initialising Hpb protocol", "versions", ProtocolVersions, "network", config.NetworkId)
 
 	if !config.SkipBcVersionCheck {
 		bcVersion := core.GetBlockChainVersion(chainDb)

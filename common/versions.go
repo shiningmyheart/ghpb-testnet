@@ -16,8 +16,8 @@
 
 package common
 
-// hpb version control
+// hpb protocol version control
 const (
-	ProtocolV111 uint    = 111 // match up protocol versions and messages
-	SubProtocolV111 uint = 111 // Light Hpb Subprotocol
+	ProtocolV111 uint    = 111 // match up protocol versions and messages versions
+	SubProtocolV111 uint = 111 // Light Hpb Sub-protocol versions
 )
