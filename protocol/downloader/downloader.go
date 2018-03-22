@@ -91,7 +91,9 @@ var (
 	errCancelHeaderProcessing  = errors.New("header processing canceled (requested)")
 	errCancelContentProcessing = errors.New("content processing canceled (requested)")
 	errNoSyncActive            = errors.New("no sync active")
-	errTooOld                  = errors.New(fmt.Sprintf("peer doesn't speak recent enough protocol version (need version >= %d)", common.ProtocolV111))
+	errProVLowerBase           = errors.New(fmt.Sprintf("peer is lower than the current baseline version (need Minimum version >= %d)", params.ProtocolV111))
+	// The protocol version is upgraded will useful.
+	errTooOld                  = errors.New(fmt.Sprintf("peer doesn't speak recent enough protocol version (need version >= %d)", params.ProtocolV111))
 )
 
 type Downloader struct {
@@ -322,7 +324,7 @@ func (d *Downloader) Synchronise(id string, head common.Hash, td *big.Int, mode 
 	case errBusy:
 
 	case errTimeout, errBadPeer, errStallingPeer,
-		errEmptyHeaderSet, errPeersUnavailable, errTooOld,
+		errEmptyHeaderSet, errPeersUnavailable, errProVLowerBase,
 		errInvalidAncestor, errInvalidChain:
 		log.Warn("Synchronisation failed, dropping peer", "peer", id, "err", err)
 		d.dropPeer(id)
@@ -410,8 +412,8 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 			d.mux.Post(DoneEvent{})
 		}
 	}()
-	if p.version < common.ProtocolV111  {
-		return errTooOld
+	if p.version < params.ProtocolV111  {
+		return errProVLowerBase
 	}
 
 	log.Debug("Synchronising with the network", "peer", p.id, "hpb", p.version, "head", hash, "td", td, "mode", d.mode)

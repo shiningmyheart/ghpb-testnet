@@ -28,6 +28,7 @@ import (
 
 	"github.com/hpb-project/ghpb/command/utils"
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/console"
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/state"
@@ -353,7 +354,7 @@ func copyDb(ctx *cli.Context) error {
 		return err
 	}
 	peer := downloader.NewFakePeer("local", db, hc, dl)
-	if err = dl.RegisterPeer("local", common.ProtocolV111, peer); err != nil {
+	if err = dl.RegisterPeer("local", params.ProtocolV111, peer); err != nil {
 		return err
 	}
 	// Synchronise with the simulated peer
