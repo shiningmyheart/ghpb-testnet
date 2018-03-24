@@ -497,6 +497,7 @@ func (tab *Table) bondall(nodes []*Node) (result []*Node) {
 	for range nodes {
 		if n := <-rc; n != nil {
 			result = append(result, n)
+			log.Debug("discover -> TABLE","bonded a node    ", n, "TABLE ROLE", tab.roleType)
 		}
 	}
 	return result

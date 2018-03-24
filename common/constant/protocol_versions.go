@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-package common
+package params
 
-// hpb version control
+// hpb protocol version control
 const (
-	ProtocolV111 uint    = 111 // match up protocol versions and messages
-	SubProtocolV111 uint = 111 // Light Hpb Subprotocol
+	ProtocolV111 uint    = 111 // match up protocol versions and messages versions
+	SubProtocolV111 uint = 111 // Light Hpb Sub-protocol versions
 )

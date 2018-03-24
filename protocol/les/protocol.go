@@ -23,11 +23,12 @@ import (
 	"math/big"
 
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/common/rlp"
 )
 
 // Supported versions of the les protocol (first is primary).
-var ProtocolVersions = []uint{common.SubProtocolV111}
+var ProtocolVersions = []uint{params.SubProtocolV111}
 
 // Number of implemented message corresponding to different protocol versions.
 var ProtocolLengths = []uint64{15}
