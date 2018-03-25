@@ -277,10 +277,13 @@ func (s *Historysnap) apply(headers []*types.Header,chain consensus.ChainReader)
 		// 获取当前header是由谁打包的，从签名中还原
 		signer, err := ecrecover(header, s.sigcache)
 
+		/*
 	    rand := chain.GetRandom()
 	    if(rand == ""){
 	    	rand = getUniqueRandom()
 	    }
+	    */
+		rand := getUniqueRandom()
 		signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + rand)))
 		
 		if err != nil {
