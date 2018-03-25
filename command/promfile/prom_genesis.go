@@ -118,20 +118,13 @@ func (p *prometh) makeGenesis() {
 		}
 	}
 
-	//bighash, _ := new(big.Int).SetString(inputHash, 16)
-	//hash := common.BigToAddressHash(bighash)
-	//signersHash = append(signersHash, hash)
-	//address_rand := make([]byte, common.AddressLength + len(randStr))
-
 	genesis.Config.Prometheus.Random = randStrs[0]
 
 	address_hashes := make([]common.AddressHash, (len(signers)/common.AddressLength)*common.AddressHashLength)
 
 	for i, signer := range signers {
 		fmt.Println("randStrs: %s", randStrs[len(signers)-i-1],"signer:",signer.Hex())
-		//address_hashes = append(address_hashes, common.BytesToAddressHash(p.fnv_hash([]byte(signer.Str() + randStr))))
 		address_hashes = append(address_hashes, common.BytesToAddressHash(p.fnv_hash([]byte(signer.Str() + randStrs[len(signers)-i-1]))))
-		//fmt.Println("test %d",address_hashes)
 	}
 
 	genesis.ExtraHash = make([]byte, 32 + len(address_hashes) * common.AddressHashLength + 65)
@@ -139,26 +132,6 @@ func (p *prometh) makeGenesis() {
 	for i, address_hash := range address_hashes {
 		copy(genesis.ExtraHash[32+ i*common.AddressHashLength:], address_hash[:])
 	}
-
-	//address_rand := make([]byte, len(signers)*(common.AddressLength + len(randStr)))
-	//for i := 0; i < len(signers); i++ {
-	//			copy(signers[i][:], genesis.Extra[extraVanity+i*common.AddressLength:])
-	//}
-
-	//hash := p.fnv_hash(address_rand)
-	//hash := p.fnv_hash([]byte(randStr))
-
-	//genesis.ExtraHash = inputHash
-	//genesis.ExtraHash = make([]byte, len(hash))
-
-	//fmt.Println("test %d",genesis.ExtraHash[:])
-
-	//copy(genesis.ExtraHash[:], hash.Bytes())
-	//copy(genesis.ExtraHash[:], hash)
-
-	//fmt.Println("%d",genesis.ExtraHash[:])
-
-	// Consensus all set, just ask for initial funds and go
 	fmt.Println()
 	fmt.Println("Which accounts should be pre-funded? (advisable at least one)")
 	for {
@@ -173,9 +146,9 @@ func (p *prometh) makeGenesis() {
 	}
 
 	// Add a batch of precompile balances to avoid them getting deleted
-	for i := int64(0); i < 256; i++ {
-		genesis.Alloc[common.BigToAddress(big.NewInt(i))] = core.GenesisAccount{Balance: big.NewInt(1)}
-	}
+	//for i := int64(0); i < 256; i++ {
+	//	genesis.Alloc[common.BigToAddress(big.NewInt(i))] = core.GenesisAccount{Balance: big.NewInt(1)}
+	//}
 	fmt.Println()
 
 	// Query the user for some custom extras
@@ -231,7 +204,7 @@ func (p *prometh) manageGenesis() {
 
 		out, _ := json.MarshalIndent(p.conf.genesis, "", "  ")
 
-		fmt.Printf("%s", out)
+		//fmt.Printf("%s", out)
 
 		if err := ioutil.WriteFile(p.readDefaultString(fmt.Sprintf("%s.json", p.network)), out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)
