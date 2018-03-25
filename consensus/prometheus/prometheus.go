@@ -39,6 +39,7 @@ import (
 	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/network/rpc"
 	"github.com/hpb-project/ghpb/storage"
+	
 )
 
 const (
@@ -130,10 +131,14 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
 		c.lock.RUnlock()
 	}
 
+    /*
     rand := chain.GetRandom()
     if(rand == ""){
     	rand = getUniqueRandom()
     }
+    */ 
+    rand := getUniqueRandom()
+
     
     signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(c.signer.Str() + rand)))
 	header.Random = rand

@@ -22,6 +22,12 @@ import (
 	"time"
 	"crypto/sha256"
 	"encoding/hex"
+	
+	"github.com/hpb-project/ghpb/common/log"
+
+	"os"
+	"path/filepath"
+	"io/ioutil"
 )
 
 
@@ -29,7 +35,22 @@ func getUniqueRandom() (string){
 	hardwareAddr := getHardwareAddr() 
 	//monthTimeStamp := getMonthTimeStamp() 
 	//uniqueRandom := getSha256(hardwareAddr + monthTimeStamp)
-	uniqueRandom := getSha256(hardwareAddr)
+	
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))	
+	
+    dir = dir +"\\randomData"
+	data, err := ioutil.ReadFile(dir)
+	if(err != nil) {
+		return getSha256(hardwareAddr)
+	}
+	
+	uniqueRandom := string(data[:])
+	log.Info("Read random data", "data", uniqueRandom)
+	
+	if(uniqueRandom ==""){
+		uniqueRandom = getSha256(hardwareAddr)
+	}
+	
 	return uniqueRandom
 }
 
