@@ -41,8 +41,8 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"gopkg.in/urfave/cli.v1"
 	
-	"path/filepath"
-	"io/ioutil"
+	//"path/filepath"
+	//"io/ioutil"
 )
 
 var (
@@ -203,7 +203,7 @@ func initRand(ctx *cli.Context) error {
 	}
 
 	// Open an initialise both full and light databases
-    /*
+    
 	stack := makeFullNode(ctx)
 
 	for _, name := range []string{"chaindata", "lightchaindata"} {
@@ -219,13 +219,13 @@ func initRand(ctx *cli.Context) error {
 		}
 		log.Info("Successfully wrote random string", "string", randomStr)
 	}
-	*/
 	
+	/*
+	// 支持写入到随机数写入到文件的功能，为了提升效率，目前先写入到数据库
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
     if err != nil {
 		log.Error("Failed to save random file", "err", err)
     }
-    
     dir = dir +"\\randomData"
     
     fmt.Println(dir)
@@ -233,8 +233,9 @@ func initRand(ctx *cli.Context) error {
 	if err := ioutil.WriteFile(dir, []byte(randomStr), 0644); err != nil {
 		log.Error("Failed to save genesis file", "err", err)
 	}
-	
 	log.Info("Successfully wrote random string", "string", randomStr)
+	*/
+	
 	return nil
 }
 

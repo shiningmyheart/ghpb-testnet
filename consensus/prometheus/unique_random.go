@@ -24,17 +24,22 @@ import (
 	"encoding/hex"
 	
 	"github.com/hpb-project/ghpb/common/log"
+	"github.com/hpb-project/ghpb/consensus"
 
-	"os"
-	"path/filepath"
-	"io/ioutil"
+	//"os"
+	//"path/filepath"
+	//"io/ioutil"
 )
 
 
-func getUniqueRandom() (string){
+func getUniqueRandom(chain consensus.ChainReader) (string){
 	hardwareAddr := getHardwareAddr() 
 	//monthTimeStamp := getMonthTimeStamp() 
 	//uniqueRandom := getSha256(hardwareAddr + monthTimeStamp)
+	
+	/*
+	
+	// 支持写入到随机数从文件读取的功能，为了提升效率，目前先从数据库读取
 	
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))	
 	
@@ -50,7 +55,15 @@ func getUniqueRandom() (string){
 	if(uniqueRandom ==""){
 		uniqueRandom = getSha256(hardwareAddr)
 	}
+	*/
 	
+    uniqueRandom := chain.GetRandom()
+    if(uniqueRandom == ""){
+    	uniqueRandom = getSha256(hardwareAddr)
+    	log.Info("Read defaut random data", "data", uniqueRandom)
+    }else{
+    	log.Info("Read customized random data", "data", uniqueRandom)
+    }
 	return uniqueRandom
 }
 

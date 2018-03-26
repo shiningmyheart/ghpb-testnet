@@ -104,6 +104,10 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
 	number := header.Number.Uint64()
 
 	log.Info("Prepare the parameters for mining")
+	
+	uniquerand := getUniqueRandom(chain)
+    signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(c.signer.Str() + uniquerand)))
+	header.Random = uniquerand
 
 	// Assemble the voting snapshot to check which votes make sense
 	snap, err := c.snapshot(chain, number-1, header.ParentHash, nil)
@@ -137,11 +141,7 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
     	rand = getUniqueRandom()
     }
     */ 
-    rand := getUniqueRandom()
-
-    
-    signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(c.signer.Str() + rand)))
-	header.Random = rand
+  
 
 	// Set the correct difficulty
 	// 根据 addressHash 来判断是否
@@ -505,6 +505,8 @@ func (c *Prometheus) verifySeal(chain consensus.ChainReader, header *types.Heade
 	signer, err := ecrecover(header, c.signatures)
 
 	signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
+	
+	log.Info("current block head from remote nodes", "Number",number,"Random",header.Random,"Difficulty",header.Difficulty)
 
 	if err != nil {
 		return err

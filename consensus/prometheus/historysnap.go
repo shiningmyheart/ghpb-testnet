@@ -29,7 +29,7 @@ import (
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hashicorp/golang-lru"
 	//"github.com/hpb-project/ghpb/common/log"
-	
+	 
 	"github.com/hpb-project/ghpb/consensus"
 
 	//"strconv"
@@ -277,14 +277,9 @@ func (s *Historysnap) apply(headers []*types.Header,chain consensus.ChainReader)
 		// 获取当前header是由谁打包的，从签名中还原
 		signer, err := ecrecover(header, s.sigcache)
 
-		/*
-	    rand := chain.GetRandom()
-	    if(rand == ""){
-	    	rand = getUniqueRandom()
-	    }
-	    */
-		rand := getUniqueRandom()
-		signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + rand)))
+		//log.Info("current head", "Random",header.Random,"number",number)
+
+		signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
 		
 		if err != nil {
 			return nil, err
