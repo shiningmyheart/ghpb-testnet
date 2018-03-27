@@ -24,7 +24,7 @@ import (
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/common/crypto/sha3"
 	"github.com/hpb-project/ghpb/common/log"
-	"github.com/rcrowley/go-metrics"
+	"github.com/hpb-project/ghpb/metrics"
 )
 
 var (
@@ -35,8 +35,8 @@ var (
 )
 
 var (
-	cacheMissCounter   = metrics.NewRegisteredCounter("trie/cachemiss", nil)
-	cacheUnloadCounter = metrics.NewRegisteredCounter("trie/cacheunload", nil)
+	cacheMissCounter   = metrics.NewCounter("trie/cachemiss")
+	cacheUnloadCounter = metrics.NewCounter("trie/cacheunload")
 )
 
 // CacheMisses retrieves a global counter measuring the number of cache misses
