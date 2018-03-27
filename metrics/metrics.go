@@ -59,7 +59,8 @@ func init() {
 		http.Handle("/metrics", promhttp.InstrumentMetricHandler(
 			prometheusRegistry, promhttp.HandlerFor(prometheusRegistry, promhttp.HandlerOpts{}),
 		))
-		http.ListenAndServe("127.0.0.1:8080", nil)
+		//todo to config
+		http.ListenAndServe("0.0.0.0:8999", nil)
 	}()
 }
 
