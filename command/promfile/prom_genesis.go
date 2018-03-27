@@ -62,6 +62,10 @@ func (p *prometh) makeGenesis() {
 	fmt.Println("How many seconds should blocks take? (default = 15)")
 	genesis.Config.Prometheus.Period = uint64(p.readDefaultInt(15))
 
+	fmt.Println()
+	fmt.Println("How many blocks should voting epoch be ? (default = 30000)")
+	genesis.Config.Prometheus.Epoch = uint64(p.readDefaultInt(30000))
+
 	// We also need the initial list of signers
 	fmt.Println()
 	fmt.Println("Which accounts are allowed to seal? (initialise miner addresses)")
