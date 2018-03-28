@@ -215,7 +215,7 @@ func (s *Historysnap) inturn(number uint64, signerHash common.AddressHash) bool 
 }
 
 
-// 已经授权的sigers, 无需进行排序
+// 已经授权的signers, 无需进行排序
 func (s *Historysnap) signers() []common.AddressHash {
 	signers := make([]common.AddressHash, 0, len(s.Signers))
 	for signerHash := range s.Signers {
