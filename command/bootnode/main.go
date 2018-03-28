@@ -97,6 +97,29 @@ func main() {
 
 	if _, err := discover.ListenUDP(nodeKey, uint8(*Role), *listenAddr, natm, "", restrictList); err != nil {
 		utils.Fatalf("%v", err)
+	}else { // else only for test
+/*
+		var bootnodesTestString = []string{
+			// HPB Foundation Go Bootnodes Test
+			"hnode://12ff40721cd0d5047d7707e96b4b0d2619a913bae09fc876315d481db3927de0fa279dd39ce8cad4cd72959e32223cda5baed491dc002025e935700b1c15ec4c&1@127.0.0.1:10001",
+		}
+		var bootnodesTest []*discover.Node
+		for _, url := range bootnodesTestString {
+			node, err := discover.ParseNode(url)
+			if err != nil {
+				log.Error("Bootstrap URL invalid", "hnode", url, "err", err)
+				continue
+			}
+			bootnodesTest = append(bootnodesTest, node)
+		}
+
+		if err := ga.LightTab.SetFallbackNodes(bootnodesTest); err != nil {
+			return
+		}
+		if err := ga.AccessTab.SetFallbackNodes(bootnodesTest); err != nil {
+			return
+		}
+*/
 	}
 
 	select {}

@@ -461,21 +461,6 @@ func (tab *Table) closestByNoBootNode(target common.Hash, nresults int) *nodesBy
 	return close
 }
 
-func (tab *Table) closestByForRole(target common.Hash, nresults int, forRole uint8) *nodesByDistance {
-	// This is a very wasteful way to find the closest nodes but
-	// obviously correct. I believe that tree-based buckets would make
-	// this easier to implement efficiently.
-	close := &nodesByDistance{target: target}
-	for _, b := range tab.buckets {
-		for _, n := range b.entries {
-			if n.Role == forRole || n.Role == BootRole {
-				close.push(n, nresults)
-			}
-		}
-	}
-	return close
-}
-
 func (tab *Table) len() (n int) {
 	for _, b := range tab.buckets {
 		n += len(b.entries)
@@ -652,12 +637,12 @@ func (tab *Table) add(new *Node) {
 func (tab *Table) stuff(nodes []*Node) {
 outer:
 	for _, n := range nodes {
-		if n.ID == tab.self.ID {
+		if n.ID == tab.self.ID && n.Role == tab.self.Role {
 			continue // don't add self
 		}
 		bucket := tab.buckets[logdist(tab.self.sha, n.sha)]
 		for i := range bucket.entries {
-			if bucket.entries[i].ID == n.ID {
+			if bucket.entries[i].ID == n.ID && bucket.entries[i].Role == n.Role {
 				continue outer // already in bucket
 			}
 		}
@@ -677,7 +662,7 @@ func (tab *Table) delete(node *Node) {
 	defer tab.mutex.Unlock()
 	bucket := tab.buckets[logdist(tab.self.sha, node.sha)]
 	for i := range bucket.entries {
-		if bucket.entries[i].ID == node.ID {
+		if bucket.entries[i].ID == node.ID && bucket.entries[i].Role == node.Role {
 			bucket.entries = append(bucket.entries[:i], bucket.entries[i+1:]...)
 			return
 		}
@@ -687,7 +672,7 @@ func (tab *Table) delete(node *Node) {
 func (b *bucket) replace(n *Node, last *Node) bool {
 	// Don't add if b already contains n.
 	for i := range b.entries {
-		if b.entries[i].ID == n.ID {
+		if b.entries[i].ID == n.ID && b.entries[i].Role == n.Role {
 			return false
 		}
 	}
@@ -707,7 +692,7 @@ func (b *bucket) replace(n *Node, last *Node) bool {
 
 func (b *bucket) bump(n *Node) bool {
 	for i := range b.entries {
-		if b.entries[i].ID == n.ID {
+		if b.entries[i].ID == n.ID && b.entries[i].Role == n.Role {
 			// move it to the front
 			copy(b.entries[1:], b.entries[:i])
 			b.entries[0] = n
