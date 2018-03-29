@@ -326,7 +326,7 @@ func (tab *Table) lookup(targetID NodeID, refreshIfEmpty bool) []*Node {
 			if n != nil && !seen[n.ID] {
 				seen[n.ID] = true
 				result.push(n, bucketSize)
-				log.Debug("discover -> TABLE","find a neighbor  ", n, "TABLE ROLE", tab.roleType)
+				log.Trace("discover -> TABLE","find a neighbor  ", n, "TABLE ROLE", tab.roleType)
 			}
 		}
 		pendingQueries--
@@ -482,7 +482,7 @@ func (tab *Table) bondall(nodes []*Node) (result []*Node) {
 	for range nodes {
 		if n := <-rc; n != nil {
 			result = append(result, n)
-			log.Debug("discover -> TABLE","bonded a node    ", n, "TABLE ROLE", tab.roleType)
+			log.Trace("discover -> TABLE","bonded a node    ", n, "TABLE ROLE", tab.roleType)
 		}
 	}
 	return result
@@ -679,7 +679,8 @@ func (b *bucket) replace(n *Node, last *Node) bool {
 	// Replace last if it is still the last entry or just add n if b
 	// isn't full. If is no longer the last entry, it has either been
 	// replaced with someone else or became active.
-	if len(b.entries) == bucketSize && (last == nil || b.entries[bucketSize-1].ID != last.ID) {
+	if len(b.entries) == bucketSize &&
+		(last == nil || b.entries[bucketSize-1].ID != last.ID || b.entries[bucketSize-1].Role != last.Role) {
 		return false
 	}
 	if len(b.entries) < bucketSize {
