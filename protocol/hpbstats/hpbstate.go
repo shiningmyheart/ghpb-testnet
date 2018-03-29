@@ -66,12 +66,12 @@ type blockChain interface {
 	SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription
 }
 
-// Service implements an Hpbereum netstats reporting daemon that pushes local
+// Service implements an Hpb netstats reporting daemon that pushes local
 // chain statistics up to a monitoring server.
 type Service struct {
 	server *p2p.Server        // Peer-to-peer server to retrieve networking infos
-	hpb    *hpb.Hpbereum      // Full Hpbereum service if monitoring a full node
-	les    *les.LightHpbereum // Light Hpbereum service if monitoring a light node
+	hpb    *hpb.Hpb      // Full Hpb service if monitoring a full node
+	les    *les.LightHpb // Light Hpb service if monitoring a light node
 	engine consensus.Engine   // Consensus engine to retrieve variadic block fields
 
 	node   string             // Name of the node to display on the monitoring page
@@ -83,7 +83,7 @@ type Service struct {
 }
 
 // New returns a monitoring service ready for stats reporting.
-func New(url string, ethServ *hpb.Hpbereum, lesServ *les.LightHpbereum) (*Service, error) {
+func New(url string, ethServ *hpb.Hpb, lesServ *les.LightHpb) (*Service, error) {
 	// Parse the netstats connection url
 	re := regexp.MustCompile("([^:@]*)(:([^@]*))?@(.+)")
 	parts := re.FindStringSubmatch(url)

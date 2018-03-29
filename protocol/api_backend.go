@@ -38,7 +38,7 @@ import (
 
 // HpbApiBackend implements ethapi.Backend for full nodes
 type HpbApiBackend struct {
-	hpb *Hpbereum
+	hpb *Hpb
 	gpo *gasprice.Oracle
 }
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpbereum Subprotocol.
+// Package les implements the Light Hpb Subprotocol.
 package les
 
 import (
@@ -46,7 +46,7 @@ type LesServer struct {
 	quitSync        chan struct{}
 }
 
-func NewLesServer(hpb *hpb.Hpbereum, config *hpb.Config) (*LesServer, error) {
+func NewLesServer(hpb *hpb.Hpb, config *hpb.Config) (*LesServer, error) {
 	quitSync := make(chan struct{})
 	pm, err := NewProtocolManager(hpb.BlockChain().Config(), false, config.NetworkId, hpb.EventMux(), hpb.Engine(), newPeerSet(), hpb.BlockChain(), hpb.TxPool(), hpb.ChainDb(), nil, nil, quitSync, new(sync.WaitGroup))
 	if err != nil {

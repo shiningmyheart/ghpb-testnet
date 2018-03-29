@@ -38,7 +38,7 @@ import (
 )
 
 type LesApiBackend struct {
-	hpb *LightHpbereum
+	hpb *LightHpb
 	gpo *gasprice.Oracle
 }
 

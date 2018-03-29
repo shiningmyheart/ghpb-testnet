@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// ghpb is the official command-line client for Hpbereum.
+// ghpb is the official command-line client for Hpb.
 package main
 
 import (
@@ -45,7 +45,7 @@ const (
 var (
 	// Git SHA1 commit hash of the release (set via linker flags)
 	gitCommit = ""
-	// Hpbereum address of the Geth release oracle.
+	// Hpb address of the Geth release oracle.
 	relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
 	// The app that holds all commands and flags.
 	app = utils.NewApp(gitCommit, "the go-hpb command line interface")
@@ -246,23 +246,23 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 
 	// Start auxiliary services if enabled
 	if ctx.GlobalBool(utils.MiningEnabledFlag.Name) {
-		// Mining only makes sense if a full Hpbereum node is running
-		var hpbereum *hpb.Hpbereum
-		if err := stack.Service(&hpbereum); err != nil {
-			utils.Fatalf("hpbereum service not running: %v", err)
+		// Mining only makes sense if a full Hpb node is running
+		var hpb *hpb.Hpb
+		if err := stack.Service(&hpb); err != nil {
+			utils.Fatalf("hpb service not running: %v", err)
 		}
 		// Use a reduced number of threads if requested
 		if threads := ctx.GlobalInt(utils.MinerThreadsFlag.Name); threads > 0 {
 			type threaded interface {
 				SetThreads(threads int)
 			}
-			if th, ok := hpbereum.Engine().(threaded); ok {
+			if th, ok := hpb.Engine().(threaded); ok {
 				th.SetThreads(threads)
 			}
 		}
 		// Set the gas price to the limits from the CLI and start mining
-		hpbereum.TxPool().SetGasPrice(utils.GlobalBig(ctx, utils.GasPriceFlag.Name))
-		if err := hpbereum.StartMining(true); err != nil {
+		hpb.TxPool().SetGasPrice(utils.GlobalBig(ctx, utils.GasPriceFlag.Name))
+		if err := hpb.StartMining(true); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
 	}

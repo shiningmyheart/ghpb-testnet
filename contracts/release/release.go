@@ -41,7 +41,7 @@ const releaseRecheckInterval = time.Hour
 
 // Config contains the configurations of the release service.
 type Config struct {
-	Oracle common.Address // Hpbereum address of the release oracle
+	Oracle common.Address // Hpb address of the release oracle
 	Major  uint32         // Major version component of the release
 	Minor  uint32         // Minor version component of the release
 	Patch  uint32         // Patch version component of the release
@@ -60,15 +60,15 @@ type ReleaseService struct {
 // NewReleaseService creates a new service to periodically check for new client
 // releases and notify the user of such.
 func NewReleaseService(ctx *node.ServiceContext, config Config) (node.Service, error) {
-	// Retrieve the Hpbereum service dependency to access the blockchain
+	// Retrieve the Hpb service dependency to access the blockchain
 	var apiBackend hpbapi.Backend
-	var hpbereum *hpb.Hpbereum
-	if err := ctx.Service(&hpbereum); err == nil {
-		apiBackend = hpbereum.ApiBackend
+	var hpbTmp *hpb.Hpb
+	if err := ctx.Service(&hpbTmp); err == nil {
+		apiBackend = hpbTmp.ApiBackend
 	} else {
-		var hpbereum *les.LightHpbereum
-		if err := ctx.Service(&hpbereum); err == nil {
-			apiBackend = hpbereum.ApiBackend
+		var hpbTmp *les.LightHpb
+		if err := ctx.Service(&hpbTmp); err == nil {
+			apiBackend = hpbTmp.ApiBackend
 		} else {
 			return nil, err
 		}

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpbereum Subprotocol.
+// Package les implements the Light Hpb Subprotocol.
 package les
 
 import (
@@ -123,7 +123,7 @@ type ProtocolManager struct {
 	wg *sync.WaitGroup
 }
 
-// NewProtocolManager returns a new hpb sub protocol manager. The Hpbereum sub protocol manages peers capable
+// NewProtocolManager returns a new hpb sub protocol manager. The Hpb sub protocol manages peers capable
 // with the hpb network.
 func NewProtocolManager(chainConfig *params.ChainConfig, lightSync bool, networkId uint64, mux *event.TypeMux, engine consensus.Engine, peers *peerSet, blockchain BlockChain, txpool txPool, chainDb hpbdb.Database, odr *LesOdr, txrelay *LesTxRelay, quitSync chan struct{}, wg *sync.WaitGroup) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
@@ -228,7 +228,7 @@ func (pm *ProtocolManager) Start() {
 func (pm *ProtocolManager) Stop() {
 	// Showing a log message. During download / process this could actually
 	// take between 5 to 10 seconds and therefor feedback is required.
-	log.Info("Stopping light Hpbereum protocol")
+	log.Info("Stopping light Hpb protocol")
 
 	// Quit the sync loop.
 	// After this send has completed, no new peers will be accepted.
@@ -245,7 +245,7 @@ func (pm *ProtocolManager) Stop() {
 	// Wait for any process action
 	pm.wg.Wait()
 
-	log.Info("Light Hpbereum protocol stopped")
+	log.Info("Light Hpb protocol stopped")
 }
 
 func (pm *ProtocolManager) newPeer(pv uint, nv uint64, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
@@ -255,13 +255,13 @@ func (pm *ProtocolManager) newPeer(pv uint, nv uint64, p *p2p.Peer, rw p2p.MsgRe
 // handle is the callback invoked to manage the life cycle of a les peer. When
 // this function terminates, the peer is disconnected.
 func (pm *ProtocolManager) handle(p *peer) error {
-	p.Log().Debug("Light Hpbereum peer connected", "name", p.Name())
+	p.Log().Debug("Light Hpb peer connected", "name", p.Name())
 
 	// Execute the LES handshake
 	td, head, genesis := pm.blockchain.Status()
 	headNum := core.GetBlockNumber(pm.chainDb, head)
 	if err := p.Handshake(td, head, headNum, genesis, pm.server); err != nil {
-		p.Log().Debug("Light Hpbereum handshake failed", "err", err)
+		p.Log().Debug("Light Hpb handshake failed", "err", err)
 		return err
 	}
 	if rw, ok := p.rw.(*meteredMsgReadWriter); ok {
@@ -269,7 +269,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	}
 	// Register the peer locally
 	if err := pm.peers.Register(p); err != nil {
-		p.Log().Error("Light Hpbereum peer registration failed", "err", err)
+		p.Log().Error("Light Hpb peer registration failed", "err", err)
 		return err
 	}
 	defer func() {
@@ -309,7 +309,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	// main loop. handle incoming messages.
 	for {
 		if err := pm.handleMsg(p); err != nil {
-			p.Log().Debug("Light Hpbereum message handling failed", "err", err)
+			p.Log().Debug("Light Hpb message handling failed", "err", err)
 			return err
 		}
 	}
@@ -325,7 +325,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 	if err != nil {
 		return err
 	}
-	p.Log().Trace("Light Hpbereum message arrived", "code", msg.Code, "bytes", msg.Size)
+	p.Log().Trace("Light Hpb message arrived", "code", msg.Code, "bytes", msg.Size)
 
 	costs := p.fcCosts[msg.Code]
 	reject := func(reqCnt, maxCnt uint64) bool {

@@ -76,7 +76,7 @@ func GetAPIs(apiBackend Backend) []rpc.API {
 		{
 			Namespace: "hpb",
 			Version:   "1.0",
-			Service:   NewPublicHpbereumAPI(apiBackend),
+			Service:   NewPublicHpbAPI(apiBackend),
 			Public:    true,
 		}, {
 			Namespace: "hpb",

@@ -28,7 +28,7 @@ import (
 	"github.com/hpb-project/ghpb/common/constant"
 )
 
-// DefaultConfig contains default settings for use on the Hpbereum main net.
+// DefaultConfig contains default settings for use on the Hpb main net.
 var DefaultConfig = Config{
 	SyncMode:              downloader.FastSync,
 	NetworkId:             1,
@@ -56,7 +56,7 @@ func init() {
 
 type Config struct {
 	// The genesis block, which is inserted if the database is empty.
-	// If nil, the Hpbereum main net block is used.
+	// If nil, the Hpb main net block is used.
 	Genesis *core.Genesis `toml:",omitempty"`
 
 	// Protocol options

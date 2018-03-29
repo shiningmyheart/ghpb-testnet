@@ -30,7 +30,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "promfile"
-	app.Usage = "assemble and maintain private Ethereum networks"
+	app.Usage = "assemble and maintain private Hpb networks"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "network",

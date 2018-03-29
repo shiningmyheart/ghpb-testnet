@@ -1,6 +1,6 @@
 CRCCheck on
 
-!define GROUPNAME "Hpbereum"
+!define GROUPNAME "Hpb"
 !define APPNAME "Ghpb"
 !define DESCRIPTION "Official Go implementation of the HPB protocol"
 !addplugindir .\
