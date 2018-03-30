@@ -463,7 +463,7 @@ func (srv *Server) Start() (err error) {
 
 	srv.quitZk = make(chan struct{})
 	//如果当前是委员会、候选委员、access节点，则将自己注册到zk中，并从zk中/nodes拉取static nodes
-	if srv.local == NtCommitt || srv.local == NtPrecomm {
+	if srv.local == NtCommitt || srv.local == NtPrecomm || srv.local == NtAccess{
 		//如果是access 则不写入 只拉取
 		if srv.local == NtAccess {
 			go StartZk(srv,true)
@@ -638,7 +638,8 @@ running:
 				p.remote = srv.getRemoteNodeType(c.id)
 
 				if p.remote == NtUnknown{
-					log.Debug("Could not find remote node type","id",c.id, "name", name, "addr", c.fd.RemoteAddr())
+					log.Debug("Could not find remote node type","id",c.id, "name", name, "addr", c.fd.RemoteAddr(),"nid",c.id)
+					fmt.Println(c.id)
 					continue
 				}
 
