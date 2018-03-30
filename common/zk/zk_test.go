@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-var hosts = []string{"localhost:2181"}
+var hosts = []string{"39.107.116.40:2181"}
 var flags int32 = zk.FlagEphemeral
 var acls = zk.WorldACL(zk.PermAll)
 
@@ -116,7 +116,7 @@ func TestAddNodes(t *testing.T) {
 	//req := "hnode://d7c14e72eb3ce550c2fe95664f16d7b8843296f2d775c679b7523728f852e7b30fefd9c2534e1b236ae06619a36b564805ed8a11dc17147b1f5f8623b62b9be8&4@116.62.175.114:3002"
 	//encodeurl := url.QueryEscape(req)
 
-	resp, err := conn.Create(RootPath+"/"+"2", []byte{0}, flags, acls)
+	resp, err := conn.Create(RootPath , []byte{0}, 0, acls)
 	fmt.Println(resp)
 	fmt.Println(err)
 	//wg.Wait()
