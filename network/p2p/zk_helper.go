@@ -37,6 +37,19 @@ func StartZk(server *Server, readOnly bool) error {
 		}
 	}
 
+	exists, _, err := conn.Exists(RootPath)
+	if err != nil {
+		log.Error("Zk exists error!", "zk", err)
+		return err
+	}
+	if !exists {
+		_, err := conn.Create(RootPath, []byte{0}, 0, zk.WorldACL(zk.PermAll))
+		if err != nil {
+			log.Error("Zk Create error!", "zk", err)
+			return err
+		}
+		log.Info("Create RootPath success!", "Path:", RootPath)
+	}
 	if !readOnly {
 		currNode := RootPath + "/" + url.QueryEscape(server.Self().String())
 		path, err := conn.Create(currNode, nil, zk.FlagEphemeral, zk.WorldACL(zk.PermAll))
@@ -106,7 +119,7 @@ func process(nodes []string, server *Server) {
 			log.Error(fmt.Sprintf("Node URL %s: %v\n", nodeStr, err))
 			continue
 		}
-		server.StaticNodes = append(server.StaticNodes,node)
+		server.StaticNodes = append(server.StaticNodes, node)
 		server.addstatic <- node
 	}
 }
