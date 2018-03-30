@@ -48,21 +48,21 @@ const (
 
 // startBloomHandlers starts a batch of goroutines to accept bloom bit database
 // retrievals from possibly a range of filters and serving the data to satisfy.
-func (hpb *Hpbereum) startBloomHandlers() {
+func (h *Hpb) startBloomHandlers() {
 	for i := 0; i < bloomServiceThreads; i++ {
 		go func() {
 			for {
 				select {
-				case <-hpb.shutdownChan:
+				case <-h.shutdownChan:
 					return
 
-				case request := <-hpb.bloomRequests:
+				case request := <-h.bloomRequests:
 					task := <-request
 
 					task.Bitsets = make([][]byte, len(task.Sections))
 					for i, section := range task.Sections {
-						head := core.GetCanonicalHash(hpb.chainDb, (section+1)*params.BloomBitsBlocks-1)
-						blob, err := bitutil.DecompressBytes(core.GetBloomBits(hpb.chainDb, task.Bit, section, head), int(params.BloomBitsBlocks)/8)
+						head := core.GetCanonicalHash(h.chainDb, (section+1)*params.BloomBitsBlocks-1)
+						blob, err := bitutil.DecompressBytes(core.GetBloomBits(h.chainDb, task.Bit, section, head), int(params.BloomBitsBlocks)/8)
 						if err != nil {
 							panic(err)
 						}

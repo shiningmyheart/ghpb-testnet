@@ -28,6 +28,7 @@ import (
 
 	"github.com/hpb-project/ghpb/command/utils"
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/console"
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/state"
@@ -39,6 +40,9 @@ import (
 	"github.com/hpb-project/ghpb/common/trie"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"gopkg.in/urfave/cli.v1"
+	
+	//"path/filepath"
+	//"io/ioutil"
 )
 
 var (
@@ -199,8 +203,9 @@ func initRand(ctx *cli.Context) error {
 	}
 
 	// Open an initialise both full and light databases
+    
 	stack := makeFullNode(ctx)
-	
+
 	for _, name := range []string{"chaindata", "lightchaindata"} {
 		chaindb, err := stack.OpenDatabase(name, 0, 0)
 	
@@ -214,6 +219,22 @@ func initRand(ctx *cli.Context) error {
 		}
 		log.Info("Successfully wrote random string", "string", randomStr)
 	}
+	
+	/*
+	// 支持写入到随机数写入到文件的功能，为了提升效率，目前先写入到数据库
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    if err != nil {
+		log.Error("Failed to save random file", "err", err)
+    }
+    dir = dir +"\\randomData"
+    
+    fmt.Println(dir)
+		
+	if err := ioutil.WriteFile(dir, []byte(randomStr), 0644); err != nil {
+		log.Error("Failed to save genesis file", "err", err)
+	}
+	log.Info("Successfully wrote random string", "string", randomStr)
+	*/
 	
 	return nil
 }
@@ -353,7 +374,7 @@ func copyDb(ctx *cli.Context) error {
 		return err
 	}
 	peer := downloader.NewFakePeer("local", db, hc, dl)
-	if err = dl.RegisterPeer("local", 63, peer); err != nil {
+	if err = dl.RegisterPeer("local", params.ProtocolV111, peer); err != nil {
 		return err
 	}
 	// Synchronise with the simulated peer

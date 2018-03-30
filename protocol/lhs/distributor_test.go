@@ -16,7 +16,7 @@
 
 // Package light implements on-demand retrieval capable state and chain objects
 // for the Hpb Light Client.
-package les
+package lhs
 
 import (
 	"math/rand"

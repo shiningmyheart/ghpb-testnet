@@ -72,7 +72,7 @@ type prometh struct {
 	conf    config // Configurations from previous runs
 
 	servers  map[string]*sshClient // SSH connections to servers to administer
-	services map[string][]string   // Ethereum services known to be running on servers
+	services map[string][]string   // Hpb services known to be running on servers
 
 	in *bufio.Reader // 处理流文件
 }
@@ -216,7 +216,7 @@ func (p *prometh) readPassword() string {
 }
 
 // readAddress reads a single line from stdin, trimming if from spaces and converts
-// it to an Ethereum address.
+// it to an Hpb address.
 func (p *prometh) readAddress() *common.Address {
 	for {
 		// Read the address from the user
@@ -248,7 +248,7 @@ func (p *prometh) readAddress() *common.Address {
 }
 
 // readDefaultAddress reads a single line from stdin, trimming if from spaces and
-// converts it to an Ethereum address. If an empty line is entered, the default
+// converts it to an Hpb address. If an empty line is entered, the default
 // value is returned.
 func (p *prometh) readDefaultAddress(def common.Address) common.Address {
 	for {

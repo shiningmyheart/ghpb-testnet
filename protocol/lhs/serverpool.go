@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpb Subprotocol.
-package les
+// Package lhs implements the Light Hpb Subprotocol.
+package lhs
 
 import (
 	"fmt"
@@ -192,7 +192,7 @@ func (pool *serverPool) connect(p *peer, ip net.IP, port uint16) *poolEntry {
 
 // registered should be called after a successful handshake
 func (pool *serverPool) registered(entry *poolEntry) {
-	log.Debug("Registered new entry", "enode", entry.id)
+	log.Debug("Registered new entry", "hnode", entry.id)
 	pool.lock.Lock()
 	defer pool.lock.Unlock()
 
@@ -210,7 +210,7 @@ func (pool *serverPool) registered(entry *poolEntry) {
 // can be updated optionally (not updated if no registration happened, in this case
 // only connection statistics are updated, just like in case of timeout)
 func (pool *serverPool) disconnect(entry *poolEntry) {
-	log.Debug("Disconnected old entry", "enode", entry.id)
+	log.Debug("Disconnected old entry", "hnode", entry.id)
 	pool.lock.Lock()
 	defer pool.lock.Unlock()
 

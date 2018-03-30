@@ -16,7 +16,7 @@
 
 // Package light implements on-demand retrieval capable state and chain objects
 // for the Hpb Light Client.
-package les
+package lhs
 
 import (
 	"encoding/binary"
@@ -83,13 +83,13 @@ func (r *BlockRequest) CanSend(peer *peer) bool {
 	return peer.HasBlock(r.Hash, r.Number)
 }
 
-// Request sends an ODR request to the LES network (implementation of LesOdrRequest)
+// Request sends an ODR request to the LHS network (implementation of LesOdrRequest)
 func (r *BlockRequest) Request(reqID uint64, peer *peer) error {
 	peer.Log().Debug("Requesting block body", "hash", r.Hash)
 	return peer.RequestBodies(reqID, r.GetCost(peer), []common.Hash{r.Hash})
 }
 
-// Valid processes an ODR request reply message from the LES network
+// Valid processes an ODR request reply message from the LHS network
 // returns true and stores results in memory if the message was a valid reply
 // to the request (implementation of LesOdrRequest)
 func (r *BlockRequest) Validate(db hpbdb.Database, msg *Msg) error {
@@ -139,13 +139,13 @@ func (r *ReceiptsRequest) CanSend(peer *peer) bool {
 	return peer.HasBlock(r.Hash, r.Number)
 }
 
-// Request sends an ODR request to the LES network (implementation of LesOdrRequest)
+// Request sends an ODR request to the LHS network (implementation of LesOdrRequest)
 func (r *ReceiptsRequest) Request(reqID uint64, peer *peer) error {
 	peer.Log().Debug("Requesting block receipts", "hash", r.Hash)
 	return peer.RequestReceipts(reqID, r.GetCost(peer), []common.Hash{r.Hash})
 }
 
-// Valid processes an ODR request reply message from the LES network
+// Valid processes an ODR request reply message from the LHS network
 // returns true and stores results in memory if the message was a valid reply
 // to the request (implementation of LesOdrRequest)
 func (r *ReceiptsRequest) Validate(db hpbdb.Database, msg *Msg) error {
@@ -194,7 +194,7 @@ func (r *TrieRequest) CanSend(peer *peer) bool {
 	return peer.HasBlock(r.Id.BlockHash, r.Id.BlockNumber)
 }
 
-// Request sends an ODR request to the LES network (implementation of LesOdrRequest)
+// Request sends an ODR request to the LHS network (implementation of LesOdrRequest)
 func (r *TrieRequest) Request(reqID uint64, peer *peer) error {
 	peer.Log().Debug("Requesting trie proof", "root", r.Id.Root, "key", r.Key)
 	req := &ProofReq{
@@ -205,7 +205,7 @@ func (r *TrieRequest) Request(reqID uint64, peer *peer) error {
 	return peer.RequestProofs(reqID, r.GetCost(peer), []*ProofReq{req})
 }
 
-// Valid processes an ODR request reply message from the LES network
+// Valid processes an ODR request reply message from the LHS network
 // returns true and stores results in memory if the message was a valid reply
 // to the request (implementation of LesOdrRequest)
 func (r *TrieRequest) Validate(db hpbdb.Database, msg *Msg) error {
@@ -246,7 +246,7 @@ func (r *CodeRequest) CanSend(peer *peer) bool {
 	return peer.HasBlock(r.Id.BlockHash, r.Id.BlockNumber)
 }
 
-// Request sends an ODR request to the LES network (implementation of LesOdrRequest)
+// Request sends an ODR request to the LHS network (implementation of LesOdrRequest)
 func (r *CodeRequest) Request(reqID uint64, peer *peer) error {
 	peer.Log().Debug("Requesting code data", "hash", r.Hash)
 	req := &CodeReq{
@@ -256,7 +256,7 @@ func (r *CodeRequest) Request(reqID uint64, peer *peer) error {
 	return peer.RequestCode(reqID, r.GetCost(peer), []*CodeReq{req})
 }
 
-// Valid processes an ODR request reply message from the LES network
+// Valid processes an ODR request reply message from the LHS network
 // returns true and stores results in memory if the message was a valid reply
 // to the request (implementation of LesOdrRequest)
 func (r *CodeRequest) Validate(db hpbdb.Database, msg *Msg) error {
@@ -306,7 +306,7 @@ func (r *ChtRequest) CanSend(peer *peer) bool {
 	return r.ChtNum <= (peer.headInfo.Number-light.ChtConfirmations)/light.ChtFrequency
 }
 
-// Request sends an ODR request to the LES network (implementation of LesOdrRequest)
+// Request sends an ODR request to the LHS network (implementation of LesOdrRequest)
 func (r *ChtRequest) Request(reqID uint64, peer *peer) error {
 	peer.Log().Debug("Requesting CHT", "cht", r.ChtNum, "block", r.BlockNum)
 	req := &ChtReq{
@@ -316,7 +316,7 @@ func (r *ChtRequest) Request(reqID uint64, peer *peer) error {
 	return peer.RequestHeaderProofs(reqID, r.GetCost(peer), []*ChtReq{req})
 }
 
-// Valid processes an ODR request reply message from the LES network
+// Valid processes an ODR request reply message from the LHS network
 // returns true and stores results in memory if the message was a valid reply
 // to the request (implementation of LesOdrRequest)
 func (r *ChtRequest) Validate(db hpbdb.Database, msg *Msg) error {

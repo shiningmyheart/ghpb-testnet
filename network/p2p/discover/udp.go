@@ -736,11 +736,9 @@ func (req *findnode)sendNeibors(trans *udp, from *net.UDPAddr, table *Table, fro
 	}
 	target := crypto.Keccak256Hash(req.Target[:])
 	table.mutex.Lock()
-	closest := table.closestByForRole(target, bucketSize, forRole).entries
+	closest := table.closest(target, bucketSize).entries
 	table.mutex.Unlock()
-
 	dClosest := nodesDuplicate(closest)
-
 	p := neighbors{Expiration: uint64(time.Now().Add(expiration).Unix())}
 	// Send neighbors in chunks with at most maxNeighbors per packet
 	// to stay below the 1280 byte limit.

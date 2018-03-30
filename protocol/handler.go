@@ -28,7 +28,6 @@ import (
 
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/consensus"
-
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/protocol/downloader"
@@ -97,7 +96,7 @@ type ProtocolManager struct {
 	wg sync.WaitGroup
 }
 
-// NewProtocolManager returns a new hpb sub protocol manager. The Hpbereum sub protocol manages peers capable
+// NewProtocolManager returns a new hpb sub protocol manager. The Hpb sub protocol manages peers capable
 // with the hpb network.
 func NewProtocolManager(config *params.ChainConfig, mode downloader.SyncMode, networkId uint64, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb hpbdb.Database) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
@@ -132,7 +131,7 @@ func NewProtocolManager(config *params.ChainConfig, mode downloader.SyncMode, ne
 			Version: version,
 			Length:  ProtocolLengths[i],
 			Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
-				peer := manager.newPeer(int(version), p, rw)
+				peer := manager.newPeer(version, p, rw)
 				select {
 				case manager.newPeerCh <- peer:
 					manager.wg.Add(1)
@@ -185,9 +184,9 @@ func (pm *ProtocolManager) removePeer(id string) {
 	if peer == nil {
 		return
 	}
-	log.Debug("Removing Hpbereum peer", "peer", id)
+	log.Debug("Removing Hpb peer", "peer", id)
 
-	// Unregister the peer from the downloader and Hpbereum peer set
+	// Unregister the peer from the downloader and Hpb peer set
 	pm.downloader.UnregisterPeer(id)
 	if err := pm.peers.Unregister(id); err != nil {
 		log.Error("Peer removal failed", "peer", id, "err", err)
@@ -216,7 +215,7 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 }
 
 func (pm *ProtocolManager) Stop() {
-	log.Info("Stopping Hpbereum protocol")
+	log.Info("Stopping Hpb protocol")
 
 	pm.txSub.Unsubscribe()         // quits txBroadcastLoop
 	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
@@ -237,10 +236,10 @@ func (pm *ProtocolManager) Stop() {
 	// Wait for all peer handler goroutines and the loops to come down.
 	pm.wg.Wait()
 
-	log.Info("Hpbereum protocol stopped")
+	log.Info("Hpb protocol stopped")
 }
 
-func (pm *ProtocolManager) newPeer(pv int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
+func (pm *ProtocolManager) newPeer(pv uint, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
 	return newPeer(pv, p, newMeteredMsgWriter(rw))
 }
 
@@ -250,12 +249,12 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	if pm.peers.Len() >= pm.maxPeers {
 		return p2p.DiscTooManyPeers
 	}
-	p.Log().Debug("Hpbereum peer connected", "name", p.Name())
+	p.Log().Debug("Hpb peer connected", "name", p.Name())
 
-	// Execute the Hpbereum handshake
+	// Execute the Hpb handshake
 	td, head, genesis := pm.blockchain.Status()
 	if err := p.Handshake(pm.networkId, td, head, genesis); err != nil {
-		p.Log().Debug("Hpbereum handshake failed", "err", err)
+		p.Log().Debug("Hpb handshake failed", "err", err)
 		return err
 	}
 	if rw, ok := p.rw.(*meteredMsgReadWriter); ok {
@@ -263,7 +262,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	}
 	// Register the peer locally
 	if err := pm.peers.Register(p); err != nil {
-		p.Log().Error("Hpbereum peer registration failed", "err", err)
+		p.Log().Error("Hpb peer registration failed", "err", err)
 		return err
 	}
 	defer pm.removePeer(p.id)
@@ -279,7 +278,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	// main loop. handle incoming messages.
 	for {
 		if err := pm.handleMsg(p); err != nil {
-			p.Log().Debug("Hpbereum message handling failed", "err", err)
+			p.Log().Debug("Hpb message handling failed", "err", err)
 			return err
 		}
 	}
@@ -456,7 +455,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			}
 		}
 
-	case p.version >= hpb_v1 && msg.Code == GetNodeDataMsg:
+	case msg.Code == GetNodeDataMsg:
 		// Decode the retrieval message
 		msgStream := rlp.NewStream(msg.Payload, uint64(msg.Size))
 		if _, err := msgStream.List(); err != nil {
@@ -483,7 +482,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		return p.SendNodeData(data)
 
-	case p.version >= hpb_v1 && msg.Code == NodeDataMsg:
+	case msg.Code == NodeDataMsg:
 		// A batch of node state data arrived to one of our previous requests
 		var data [][]byte
 		if err := msg.Decode(&data); err != nil {
@@ -494,7 +493,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			log.Debug("Failed to deliver node state data", "err", err)
 		}
 
-	case p.version >= hpb_v1 && msg.Code == GetReceiptsMsg:
+	case msg.Code == GetReceiptsMsg:
 		// Decode the retrieval message
 		msgStream := rlp.NewStream(msg.Payload, uint64(msg.Size))
 		if _, err := msgStream.List(); err != nil {
@@ -530,7 +529,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		return p.SendReceiptsRLP(receipts)
 
-	case p.version >= hpb_v1 && msg.Code == ReceiptsMsg:
+	case msg.Code == ReceiptsMsg:
 		// A batch of receipts arrived to one of our previous requests
 		var receipts [][]*types.Receipt
 		if err := msg.Decode(&receipts); err != nil {
@@ -728,10 +727,10 @@ func (self *ProtocolManager) txBroadcastLoop() {
 	}
 }
 
-// HpbNodeInfo represents a short summary of the Hpbereum sub-protocol metadata known
+// HpbNodeInfo represents a short summary of the Hpb sub-protocol metadata known
 // about the host peer.
 type HpbNodeInfo struct {
-	Network    uint64      `json:"network"`    // Hpbereum network ID (1=Frontier, 2=Morden, Ropsten=3)
+	Network    uint64      `json:"network"`    // Hpb network ID (1=Frontier, 2=Morden, Ropsten=3)
 	Difficulty *big.Int    `json:"difficulty"` // Total difficulty of the host's blockchain
 	Genesis    common.Hash `json:"genesis"`    // SHA3 hash of the host's genesis block
 	Head       common.Hash `json:"head"`       // SHA3 hash of the host's best owned block

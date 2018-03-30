@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-package les
+package lhs
 
 import (
 	"bytes"
@@ -189,7 +189,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, fn odrTestFn) {
 	}
 
 	// temporarily remove peer to test odr fails
-	// expect retrievals to fail (except genesis block) without a les peer
+	// expect retrievals to fail (except genesis block) without a lhs peer
 	peers.Unregister(lpeer.id)
 	time.Sleep(time.Millisecond * 10) // ensure that all peerSetNotify callbacks are executed
 	test(expFail)

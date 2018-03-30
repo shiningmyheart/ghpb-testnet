@@ -27,7 +27,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	hpb "github.com/hpb-project/ghpb/interface"
+	hpbinter "github.com/hpb-project/ghpb/interface"
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/storage"
@@ -57,7 +57,7 @@ var (
 	qosConfidenceCap = 10   // Number of peers above which not to modify RTT confidence
 	qosTuningImpact  = 0.25 // Impact that a new tuning target has on the previous value
 
-	maxQueuedHeaders  = 32 * 1024 // [eth/62] Maximum number of headers to queue for import (DOS protection)
+	maxQueuedHeaders  = 32 * 1024 // Maximum number of headers to queue for import (DOS protection)
 	maxHeadersProcess = 2048      // Number of header download results to import at once into the chain
 	maxResultsProcess = 2048      // Number of content download results to import at once into the chain
 
@@ -91,7 +91,9 @@ var (
 	errCancelHeaderProcessing  = errors.New("header processing canceled (requested)")
 	errCancelContentProcessing = errors.New("content processing canceled (requested)")
 	errNoSyncActive            = errors.New("no sync active")
-	errTooOld                  = errors.New("peer doesn't speak recent enough protocol version (need version >= 62)")
+	errProVLowerBase           = errors.New(fmt.Sprintf("peer is lower than the current baseline version (need Minimum version >= %d)", params.ProtocolV111))
+	// The protocol version is upgraded will useful.
+	errTooOld                  = errors.New(fmt.Sprintf("peer doesn't speak recent enough protocol version (need version >= %d)", params.ProtocolV111))
 )
 
 type Downloader struct {
@@ -126,17 +128,17 @@ type Downloader struct {
 	notified        int32
 
 	// Channels
-	headerCh      chan dataPack        // [eth/62] Channel receiving inbound block headers
-	bodyCh        chan dataPack        // [eth/62] Channel receiving inbound block bodies
-	receiptCh     chan dataPack        // [eth/63] Channel receiving inbound receipts
-	bodyWakeCh    chan bool            // [eth/62] Channel to signal the block body fetcher of new tasks
-	receiptWakeCh chan bool            // [eth/63] Channel to signal the receipt fetcher of new tasks
-	headerProcCh  chan []*types.Header // [eth/62] Channel to feed the header processor new tasks
+	headerCh      chan dataPack        // Channel receiving inbound block headers
+	bodyCh        chan dataPack        // Channel receiving inbound block bodies
+	receiptCh     chan dataPack        // Channel receiving inbound receipts
+	bodyWakeCh    chan bool            // Channel to signal the block body fetcher of new tasks
+	receiptWakeCh chan bool            // Channel to signal the receipt fetcher of new tasks
+	headerProcCh  chan []*types.Header // Channel to feed the header processor new tasks
 
 	// for stateFetcher
 	stateSyncStart chan *stateSync
 	trackStateReq  chan *stateReq
-	stateCh        chan dataPack // [eth/63] Channel receiving inbound node state data
+	stateCh        chan dataPack // Channel receiving inbound node state data
 
 	// Cancellation and termination
 	cancelPeer string        // Identifier of the peer currently being used as the master (cancel on drop)
@@ -241,7 +243,7 @@ func New(mode SyncMode, stateDb hpbdb.Database, mux *event.TypeMux, chain BlockC
 // In addition, during the state download phase of fast synchronisation the number
 // of processed and the total number of known states are also returned. Otherwise
 // these are zero.
-func (d *Downloader) Progress() hpb.SyncProgress {
+func (d *Downloader) Progress() hpbinter.SyncProgress {
 	// Lock the current stats and return the progress
 	d.syncStatsLock.RLock()
 	defer d.syncStatsLock.RUnlock()
@@ -255,7 +257,7 @@ func (d *Downloader) Progress() hpb.SyncProgress {
 	case LightSync:
 		current = d.lightchain.CurrentHeader().Number.Uint64()
 	}
-	return hpb.SyncProgress{
+	return hpbinter.SyncProgress{
 		StartingBlock: d.syncStatsChainOrigin,
 		CurrentBlock:  current,
 		HighestBlock:  d.syncStatsChainHeight,
@@ -271,7 +273,7 @@ func (d *Downloader) Synchronising() bool {
 
 // RegisterPeer injects a new download peer into the set of block source to be
 // used for fetching hashes and blocks from.
-func (d *Downloader) RegisterPeer(id string, version int, peer Peer) error {
+func (d *Downloader) RegisterPeer(id string, version uint, peer Peer) error {
 
 	logger := log.New("peer", id)
 	logger.Trace("Registering sync peer")
@@ -285,7 +287,7 @@ func (d *Downloader) RegisterPeer(id string, version int, peer Peer) error {
 }
 
 // RegisterLightPeer injects a light client peer, wrapping it so it appears as a regular peer.
-func (d *Downloader) RegisterLightPeer(id string, version int, peer LightPeer) error {
+func (d *Downloader) RegisterLightPeer(id string, version uint, peer LightPeer) error {
 	return d.RegisterPeer(id, version, &lightPeerWrapper{peer})
 }
 
@@ -322,7 +324,7 @@ func (d *Downloader) Synchronise(id string, head common.Hash, td *big.Int, mode 
 	case errBusy:
 
 	case errTimeout, errBadPeer, errStallingPeer,
-		errEmptyHeaderSet, errPeersUnavailable, errTooOld,
+		errEmptyHeaderSet, errPeersUnavailable, errProVLowerBase,
 		errInvalidAncestor, errInvalidChain:
 		log.Warn("Synchronisation failed, dropping peer", "peer", id, "err", err)
 		d.dropPeer(id)
@@ -410,8 +412,8 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 			d.mux.Post(DoneEvent{})
 		}
 	}()
-	if p.version < 100 {
-		return errTooOld
+	if p.version < params.ProtocolV111  {
+		return errProVLowerBase
 	}
 
 	log.Debug("Synchronising with the network", "peer", p.id, "hpb", p.version, "head", hash, "td", td, "mode", d.mode)

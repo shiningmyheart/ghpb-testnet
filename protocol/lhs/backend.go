@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpbereum Subprotocol.
-package les
+// Package lhs implements the Light Hpb Subprotocol.
+package lhs
 
 import (
 	"fmt"
@@ -24,26 +24,26 @@ import (
 
 	"github.com/hpb-project/ghpb/account"
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
+	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/consensus"
 	"github.com/hpb-project/ghpb/core"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/core/types"
+	"github.com/hpb-project/ghpb/internal/hpbapi"
+	"github.com/hpb-project/ghpb/network/p2p"
+	"github.com/hpb-project/ghpb/network/p2p/discv5"
+	rpc "github.com/hpb-project/ghpb/network/rpc"
+	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/protocol"
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
-	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/core/event"
-	"github.com/hpb-project/ghpb/internal/hpbapi"
 	"github.com/hpb-project/ghpb/protocol/light"
-	"github.com/hpb-project/ghpb/common/log"
-	"github.com/hpb-project/ghpb/node"
-	"github.com/hpb-project/ghpb/network/p2p"
-	"github.com/hpb-project/ghpb/network/p2p/discv5"
-	"github.com/hpb-project/ghpb/common/constant"
-	rpc "github.com/hpb-project/ghpb/network/rpc"
+	"github.com/hpb-project/ghpb/storage"
 )
 
-type LightHpbereum struct {
+type LightHpb struct {
 	odr         *LesOdr
 	relay       *LesTxRelay
 	chainConfig *params.ChainConfig
@@ -60,7 +60,7 @@ type LightHpbereum struct {
 	// DB interfaces
 	chainDb hpbdb.Database // Block chain database
 
-	ApiBackend *LesApiBackend
+	ApiBackend *LhsApiBackend
 
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
@@ -72,7 +72,7 @@ type LightHpbereum struct {
 	wg sync.WaitGroup
 }
 
-func New(ctx *node.ServiceContext, config *hpb.Config) (*LightHpbereum, error) {
+func New(ctx *node.ServiceContext, config *hpb.Config) (*LightHpb, error) {
 	chainDb, err := hpb.CreateDB(ctx, config, "lightchaindata")
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func New(ctx *node.ServiceContext, config *hpb.Config) (*LightHpbereum, error) {
 	peers := newPeerSet()
 	quitSync := make(chan struct{})
 
-	hpb := &LightHpbereum{
+	hpb := &LightHpb{
 		chainConfig:    chainConfig,
 		chainDb:        chainDb,
 		eventMux:       ctx.EventMux,
@@ -116,7 +116,7 @@ func New(ctx *node.ServiceContext, config *hpb.Config) (*LightHpbereum, error) {
 	if hpb.protocolManager, err = NewProtocolManager(hpb.chainConfig, true, config.NetworkId, hpb.eventMux, hpb.engine, hpb.peers, hpb.blockchain, nil, chainDb, hpb.odr, hpb.relay, quitSync, &hpb.wg); err != nil {
 		return nil, err
 	}
-	hpb.ApiBackend = &LesApiBackend{hpb, nil}
+	hpb.ApiBackend = &LhsApiBackend{hpb, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.GasPrice
@@ -126,7 +126,7 @@ func New(ctx *node.ServiceContext, config *hpb.Config) (*LightHpbereum, error) {
 }
 
 func lesTopic(genesisHash common.Hash) discv5.Topic {
-	return discv5.Topic("LES@" + common.Bytes2Hex(genesisHash.Bytes()[0:8]))
+	return discv5.Topic("LHS@" + common.Bytes2Hex(genesisHash.Bytes()[0:8]))
 }
 
 type LightDummyAPI struct{}
@@ -148,7 +148,7 @@ func (s *LightDummyAPI) Mining() bool {
 
 // APIs returns the collection of RPC services the hpb package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
-func (s *LightHpbereum) APIs() []rpc.API {
+func (s *LightHpb) APIs() []rpc.API {
 
 	return append(hpbapi.GetAPIs(s.ApiBackend), []rpc.API{
 		{
@@ -175,26 +175,26 @@ func (s *LightHpbereum) APIs() []rpc.API {
 	}...)
 }
 
-func (s *LightHpbereum) ResetWithGenesisBlock(gb *types.Block) {
+func (s *LightHpb) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *LightHpbereum) BlockChain() *light.LightChain      { return s.blockchain }
-func (s *LightHpbereum) TxPool() *light.TxPool              { return s.txPool }
-func (s *LightHpbereum) Engine() consensus.Engine           { return s.engine }
-func (s *LightHpbereum) LesVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
-func (s *LightHpbereum) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
-func (s *LightHpbereum) EventMux() *event.TypeMux           { return s.eventMux }
+func (s *LightHpb) BlockChain() *light.LightChain      { return s.blockchain }
+func (s *LightHpb) TxPool() *light.TxPool              { return s.txPool }
+func (s *LightHpb) Engine() consensus.Engine           { return s.engine }
+func (s *LightHpb) LesVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
+func (s *LightHpb) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
+func (s *LightHpb) EventMux() *event.TypeMux           { return s.eventMux }
 
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
-func (s *LightHpbereum) Protocols() []p2p.Protocol {
+func (s *LightHpb) Protocols() []p2p.Protocol {
 	return s.protocolManager.SubProtocols
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
-// Hpbereum protocol implementation.
-func (s *LightHpbereum) Start(srvr *p2p.Server) error {
+// Hpb protocol implementation.
+func (s *LightHpb) Start(srvr *p2p.Server) error {
 	log.Warn("Light client mode is an experimental feature")
 	s.netRPCService = hpbapi.NewPublicNetAPI(srvr, s.networkId)
 	s.serverPool.start(srvr, lesTopic(s.blockchain.Genesis().Hash()))
@@ -203,8 +203,8 @@ func (s *LightHpbereum) Start(srvr *p2p.Server) error {
 }
 
 // Stop implements node.Service, terminating all internal goroutines used by the
-// Hpbereum protocol.
-func (s *LightHpbereum) Stop() error {
+// Hpb protocol.
+func (s *LightHpb) Stop() error {
 	s.odr.Stop()
 	s.blockchain.Stop()
 	s.protocolManager.Stop()

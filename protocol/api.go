@@ -44,40 +44,40 @@ import (
 
 const defaultTraceTimeout = 5 * time.Second
 
-// PublicHpbereumAPI provides an API to access Hpbereum full node-related
+// PublicHpbAPI provides an API to access Hpb full node-related
 // information.
-type PublicHpbereumAPI struct {
-	e *Hpbereum
+type PublicHpbAPI struct {
+	e *Hpb
 }
 
-// NewPublicHpbereumAPI creates a new Hpbereum protocol API for full nodes.
-func NewPublicHpbereumAPI(e *Hpbereum) *PublicHpbereumAPI {
-	return &PublicHpbereumAPI{e}
+// NewPublicHpbAPI creates a new Hpb protocol API for full nodes.
+func NewPublicHpbAPI(e *Hpb) *PublicHpbAPI {
+	return &PublicHpbAPI{e}
 }
 
 // Hpberbase is the address that mining rewards will be send to
-func (api *PublicHpbereumAPI) Hpberbase() (common.Address, error) {
+func (api *PublicHpbAPI) Hpberbase() (common.Address, error) {
 	return api.e.Hpberbase()
 }
 
 // Coinbase is the address that mining rewards will be send to (alias for Hpberbase)
-func (api *PublicHpbereumAPI) Coinbase() (common.Address, error) {
+func (api *PublicHpbAPI) Coinbase() (common.Address, error) {
 	return api.Hpberbase()
 }
 
 // Mining returns the miner is mining
-func (api *PublicHpbereumAPI) Mining() bool {
+func (api *PublicHpbAPI) Mining() bool {
 	return api.e.miner.Mining()
 }
 
 // PrivateMinerAPI provides private RPC methods to control the miner.
 // These methods can be abused by external users and must be considered insecure for use by untrusted users.
 type PrivateMinerAPI struct {
-	e *Hpbereum
+	e *Hpb
 }
 
 // NewPrivateMinerAPI create a new RPC service which controls the miner of this node.
-func NewPrivateMinerAPI(e *Hpbereum) *PrivateMinerAPI {
+func NewPrivateMinerAPI(e *Hpb) *PrivateMinerAPI {
 	return &PrivateMinerAPI{e: e}
 }
 
@@ -149,15 +149,15 @@ func (api *PrivateMinerAPI) SetHpberbase(hpberbase common.Address) bool {
 	return true
 }
 
-// PrivateAdminAPI is the collection of Hpbereum full node-related APIs
+// PrivateAdminAPI is the collection of Hpb full node-related APIs
 // exposed over the private admin endpoint.
 type PrivateAdminAPI struct {
-	hpb *Hpbereum
+	hpb *Hpb
 }
 
 // NewPrivateAdminAPI creates a new API definition for the full node private
-// admin methods of the Hpbereum service.
-func NewPrivateAdminAPI(hpb *Hpbereum) *PrivateAdminAPI {
+// admin methods of the Hpb service.
+func NewPrivateAdminAPI(hpb *Hpb) *PrivateAdminAPI {
 	return &PrivateAdminAPI{hpb: hpb}
 }
 
@@ -242,15 +242,15 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 	return true, nil
 }
 
-// PublicDebugAPI is the collection of Hpbereum full node APIs exposed
+// PublicDebugAPI is the collection of Hpb full node APIs exposed
 // over the public debugging endpoint.
 type PublicDebugAPI struct {
-	hpb *Hpbereum
+	hpb *Hpb
 }
 
 // NewPublicDebugAPI creates a new API definition for the full node-
-// related public debug methods of the Hpbereum service.
-func NewPublicDebugAPI(hpb *Hpbereum) *PublicDebugAPI {
+// related public debug methods of the Hpb service.
+func NewPublicDebugAPI(hpb *Hpb) *PublicDebugAPI {
 	return &PublicDebugAPI{hpb: hpb}
 }
 
@@ -279,16 +279,16 @@ func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error
 	return stateDb.RawDump(), nil
 }
 
-// PrivateDebugAPI is the collection of Hpbereum full node APIs exposed over
+// PrivateDebugAPI is the collection of Hpb full node APIs exposed over
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
 	config *params.ChainConfig
-	hpb    *Hpbereum
+	hpb    *Hpb
 }
 
 // NewPrivateDebugAPI creates a new API definition for the full node-related
-// private debug methods of the Hpbereum service.
-func NewPrivateDebugAPI(config *params.ChainConfig, hpb *Hpbereum) *PrivateDebugAPI {
+// private debug methods of the Hpb service.
+func NewPrivateDebugAPI(config *params.ChainConfig, hpb *Hpb) *PrivateDebugAPI {
 	return &PrivateDebugAPI{config: config, hpb: hpb}
 }
 

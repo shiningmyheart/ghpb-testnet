@@ -22,22 +22,18 @@ import (
 	"math/big"
 
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/rlp"
 )
 
-// Constants to match up protocol versions and messages
-const (
-	hpb_v1 = 100
-)
-
 // Official short name of the protocol used during capability negotiation.
 var ProtocolName = "hpb"
 
-// Supported versions of the eth protocol (first is primary).
-var ProtocolVersions = []uint{hpb_v1}
+// Supported versions of the hpb protocol (first is primary).
+var ProtocolVersions = []uint{params.ProtocolV111}
 
 // Number of implemented message corresponding to different protocol versions.
 var ProtocolLengths = []uint64{17}
@@ -46,7 +42,6 @@ const ProtocolMaxMsgSize = 10 * 1024 * 1024 // Maximum cap on the size of a prot
 
 // eth protocol message codes
 const (
-	// Protocol messages belonging to eth/62
 	StatusMsg          = 0x00
 	NewBlockHashesMsg  = 0x01
 	TxMsg              = 0x02
@@ -55,8 +50,6 @@ const (
 	GetBlockBodiesMsg  = 0x05
 	BlockBodiesMsg     = 0x06
 	NewBlockMsg        = 0x07
-
-	// Protocol messages belonging to eth/63
 	GetNodeDataMsg = 0x0d
 	NodeDataMsg    = 0x0e
 	GetReceiptsMsg = 0x0f

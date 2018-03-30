@@ -39,6 +39,7 @@ import (
 	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/network/rpc"
 	"github.com/hpb-project/ghpb/storage"
+	
 )
 
 const (
@@ -103,6 +104,10 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
 	number := header.Number.Uint64()
 
 	log.Info("Prepare the parameters for mining")
+	
+	uniquerand := getUniqueRandom(chain)
+    signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(c.signer.Str() + uniquerand)))
+	header.Random = uniquerand
 
 	// Assemble the voting snapshot to check which votes make sense
 	snap, err := c.snapshot(chain, number-1, header.ParentHash, nil)
@@ -130,14 +135,6 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
 		c.lock.RUnlock()
 	}
 
-    rand := chain.GetRandom()
-    if(rand == ""){
-    	rand = getUniqueRandom()
-    }
-    
-    signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(c.signer.Str() + rand)))
-	header.Random = rand
-
 	// Set the correct difficulty
 	// 根据 addressHash 来判断是否
 	header.Difficulty = diffNoTurn
@@ -153,6 +150,7 @@ func (c *Prometheus) Prepare(chain consensus.ChainReader, header *types.Header) 
 	header.Extra = header.Extra[:extraVanity]
 
 	if number%c.config.Epoch == 0 {
+		//在投票周期的时候，放入全部的AddressHash
 		for _, signerHash := range snap.signers() {
 			header.Extra = append(header.Extra, signerHash[:]...)
 		}
@@ -401,7 +399,8 @@ func (c *Prometheus) verifyHeader(chain consensus.ChainReader, header *types.Hea
 	if !checkpoint && signersBytes != 0 {
 		return errExtraSigners
 	}
-	if checkpoint && signersBytes%common.AddressLength != 0 {
+	if checkpoint && signersBytes%common.AddressHashLength != 0 {
+		log.Info("at checkpoint", "checkpoint",checkpoint)
 		return errInvalidCheckpointSigners
 	}
 	// Ensure that the mix digest is zero as we don't have fork protection currently
@@ -453,9 +452,11 @@ func (c *Prometheus) verifyCascadingFields(chain consensus.ChainReader, header *
 	}
 	// If the block is a checkpoint block, verify the signerHash list
 	if number%c.config.Epoch == 0 {
-		signers := make([]byte, len(snap.Signers)*common.AddressLength)
+		//获取出当前快照的内容, snap.Signers 实际为hash
+		log.Info("the block is at epoch checkpoint", "block number",number)
+		signers := make([]byte, len(snap.Signers)*common.AddressHashLength)
 		for i, signerHash := range snap.signers() {
-			copy(signers[i*common.AddressLength:], signerHash[:])
+			copy(signers[i*common.AddressHashLength:], signerHash[:])
 		}
 		extraSuffix := len(header.Extra) - extraSeal
 		if !bytes.Equal(header.Extra[extraVanity:extraSuffix], signers) {
@@ -500,6 +501,8 @@ func (c *Prometheus) verifySeal(chain consensus.ChainReader, header *types.Heade
 	signer, err := ecrecover(header, c.signatures)
 
 	signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
+	
+	log.Info("current block head from remote nodes", "Number",number,"Random",header.Random,"Difficulty",header.Difficulty)
 
 	if err != nil {
 		return err
@@ -571,9 +574,7 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 	log.Info("Current seal random is" + header.Random)
 	signerHash := common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
 
-	log.Info("signer" + signer.Hex())
-
-	log.Info("signerHash" + signerHash.Hex())
+	log.Info("signer's address","signer", signer.Hex())
 
 	c.lock.RUnlock()
 

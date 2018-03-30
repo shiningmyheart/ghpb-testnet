@@ -47,24 +47,24 @@ const (
 	defaultGasPrice = 50 * params.Shannon
 )
 
-// PublicHpbereumAPI provides an API to access Hpb related information.
+// PublicHpbAPI provides an API to access Hpb related information.
 // It offers only methods that operate on public data that is freely available to anyone.
-type PublicHpbereumAPI struct {
+type PublicHpbAPI struct {
 	b Backend
 }
 
-// NewPublicHpbereumAPI creates a new Hpb protocol API.
-func NewPublicHpbereumAPI(b Backend) *PublicHpbereumAPI {
-	return &PublicHpbereumAPI{b}
+// NewPublicHpbAPI creates a new Hpb protocol API.
+func NewPublicHpbAPI(b Backend) *PublicHpbAPI {
+	return &PublicHpbAPI{b}
 }
 
 // GasPrice returns a suggestion for a gas price.
-func (s *PublicHpbereumAPI) GasPrice(ctx context.Context) (*big.Int, error) {
+func (s *PublicHpbAPI) GasPrice(ctx context.Context) (*big.Int, error) {
 	return s.b.SuggestPrice(ctx)
 }
 
 // ProtocolVersion returns the current Hpb protocol version this node supports
-func (s *PublicHpbereumAPI) ProtocolVersion() hexutil.Uint {
+func (s *PublicHpbAPI) ProtocolVersion() hexutil.Uint {
 	return hexutil.Uint(s.b.ProtocolVersion())
 }
 
@@ -75,7 +75,7 @@ func (s *PublicHpbereumAPI) ProtocolVersion() hexutil.Uint {
 // - highestBlock:  block number of the highest block header this node has received from peers
 // - pulledStates:  number of state entries processed until now
 // - knownStates:   number of known state entries that still need to be pulled
-func (s *PublicHpbereumAPI) Syncing() (interface{}, error) {
+func (s *PublicHpbAPI) Syncing() (interface{}, error) {
 	progress := s.b.Downloader().Progress()
 
 	// Return not syncing if the synchronisation already completed

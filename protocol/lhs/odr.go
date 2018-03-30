@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-package les
+package lhs
 
 import (
 	"context"
@@ -55,14 +55,14 @@ const (
 	MsgHeaderProofs
 )
 
-// Msg encodes a LES message that delivers reply data for a request
+// Msg encodes a LHS message that delivers reply data for a request
 type Msg struct {
 	MsgType int
 	ReqID   uint64
 	Obj     interface{}
 }
 
-// Retrieve tries to fetch an object from the LES network.
+// Retrieve tries to fetch an object from the LHS network.
 // If the network retrieval was successful, it stores the object in local db.
 func (self *LesOdr) Retrieve(ctx context.Context, req light.OdrRequest) (err error) {
 	lreq := LesRequest(req)

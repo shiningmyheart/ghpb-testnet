@@ -17,7 +17,7 @@
 // This file contains some shares testing functionality, common to  multiple
 // different files and modules being tested.
 
-package les
+package lhs
 
 import (
 	"crypto/rand"
@@ -32,7 +32,7 @@ import (
 	"github.com/hpb-project/ghpb/common/crypto"
 	"github.com/hpb-project/ghpb/storage"
 	"github.com/hpb-project/ghpb/core/event"
-	"github.com/hpb-project/ghpb/protocol/les/flowcontrol"
+	"github.com/hpb-project/ghpb/protocol/lhs/flowcontrol"
 	"github.com/hpb-project/ghpb/protocol/light"
 	"github.com/hpb-project/ghpb/network/p2p"
 	"github.com/hpb-project/ghpb/network/p2p/discover"

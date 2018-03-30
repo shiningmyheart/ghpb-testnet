@@ -326,7 +326,7 @@ func (tab *Table) lookup(targetID NodeID, refreshIfEmpty bool) []*Node {
 			if n != nil && !seen[n.ID] {
 				seen[n.ID] = true
 				result.push(n, bucketSize)
-				log.Debug("discover -> TABLE","find a neighbor  ", n, "TABLE ROLE", tab.roleType)
+				log.Trace("discover -> TABLE","find a neighbor  ", n, "TABLE ROLE", tab.roleType)
 			}
 		}
 		pendingQueries--
@@ -461,21 +461,6 @@ func (tab *Table) closestByNoBootNode(target common.Hash, nresults int) *nodesBy
 	return close
 }
 
-func (tab *Table) closestByForRole(target common.Hash, nresults int, forRole uint8) *nodesByDistance {
-	// This is a very wasteful way to find the closest nodes but
-	// obviously correct. I believe that tree-based buckets would make
-	// this easier to implement efficiently.
-	close := &nodesByDistance{target: target}
-	for _, b := range tab.buckets {
-		for _, n := range b.entries {
-			if n.Role == forRole || n.Role == BootRole {
-				close.push(n, nresults)
-			}
-		}
-	}
-	return close
-}
-
 func (tab *Table) len() (n int) {
 	for _, b := range tab.buckets {
 		n += len(b.entries)
@@ -497,6 +482,7 @@ func (tab *Table) bondall(nodes []*Node) (result []*Node) {
 	for range nodes {
 		if n := <-rc; n != nil {
 			result = append(result, n)
+			log.Trace("discover -> TABLE","bonded a node    ", n, "TABLE ROLE", tab.roleType)
 		}
 	}
 	return result
@@ -651,12 +637,12 @@ func (tab *Table) add(new *Node) {
 func (tab *Table) stuff(nodes []*Node) {
 outer:
 	for _, n := range nodes {
-		if n.ID == tab.self.ID {
+		if n.ID == tab.self.ID && n.Role == tab.self.Role {
 			continue // don't add self
 		}
 		bucket := tab.buckets[logdist(tab.self.sha, n.sha)]
 		for i := range bucket.entries {
-			if bucket.entries[i].ID == n.ID {
+			if bucket.entries[i].ID == n.ID && bucket.entries[i].Role == n.Role {
 				continue outer // already in bucket
 			}
 		}
@@ -676,7 +662,7 @@ func (tab *Table) delete(node *Node) {
 	defer tab.mutex.Unlock()
 	bucket := tab.buckets[logdist(tab.self.sha, node.sha)]
 	for i := range bucket.entries {
-		if bucket.entries[i].ID == node.ID {
+		if bucket.entries[i].ID == node.ID && bucket.entries[i].Role == node.Role {
 			bucket.entries = append(bucket.entries[:i], bucket.entries[i+1:]...)
 			return
 		}
@@ -686,14 +672,15 @@ func (tab *Table) delete(node *Node) {
 func (b *bucket) replace(n *Node, last *Node) bool {
 	// Don't add if b already contains n.
 	for i := range b.entries {
-		if b.entries[i].ID == n.ID {
+		if b.entries[i].ID == n.ID && b.entries[i].Role == n.Role {
 			return false
 		}
 	}
 	// Replace last if it is still the last entry or just add n if b
 	// isn't full. If is no longer the last entry, it has either been
 	// replaced with someone else or became active.
-	if len(b.entries) == bucketSize && (last == nil || b.entries[bucketSize-1].ID != last.ID) {
+	if len(b.entries) == bucketSize &&
+		(last == nil || b.entries[bucketSize-1].ID != last.ID || b.entries[bucketSize-1].Role != last.Role) {
 		return false
 	}
 	if len(b.entries) < bucketSize {
@@ -706,7 +693,7 @@ func (b *bucket) replace(n *Node, last *Node) bool {
 
 func (b *bucket) bump(n *Node) bool {
 	for i := range b.entries {
-		if b.entries[i].ID == n.ID {
+		if b.entries[i].ID == n.ID && b.entries[i].Role == n.Role {
 			// move it to the front
 			copy(b.entries[1:], b.entries[:i])
 			b.entries[0] = n

@@ -29,7 +29,7 @@ import (
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hashicorp/golang-lru"
 	//"github.com/hpb-project/ghpb/common/log"
-	
+	 
 	"github.com/hpb-project/ghpb/consensus"
 
 	//"strconv"
@@ -215,7 +215,7 @@ func (s *Historysnap) inturn(number uint64, signerHash common.AddressHash) bool 
 }
 
 
-// 已经授权的sigers, 无需进行排序
+// 已经授权的signers, 无需进行排序
 func (s *Historysnap) signers() []common.AddressHash {
 	signers := make([]common.AddressHash, 0, len(s.Signers))
 	for signerHash := range s.Signers {
@@ -277,11 +277,9 @@ func (s *Historysnap) apply(headers []*types.Header,chain consensus.ChainReader)
 		// 获取当前header是由谁打包的，从签名中还原
 		signer, err := ecrecover(header, s.sigcache)
 
-	    rand := chain.GetRandom()
-	    if(rand == ""){
-	    	rand = getUniqueRandom()
-	    }
-		signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + rand)))
+		//log.Info("current head", "Random",header.Random,"number",number)
+
+		signerHash :=  common.BytesToAddressHash(common.Fnv_hash_to_byte([]byte(signer.Str() + header.Random)))
 		
 		if err != nil {
 			return nil, err

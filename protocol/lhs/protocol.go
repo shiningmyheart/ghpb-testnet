@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpb Subprotocol.
-package les
+// Package lhs implements the Light Hpb Subprotocol.
+package lhs
 
 import (
 	"fmt"
@@ -23,16 +23,12 @@ import (
 	"math/big"
 
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/common/rlp"
 )
 
-// Constants to match up protocol versions and messages
-const (
-	lhpbv1 = 1
-)
-
-// Supported versions of the les protocol (first is primary).
-var ProtocolVersions = []uint{lhpbv1}
+// Supported versions of the lhs protocol (first is primary).
+var ProtocolVersions = []uint{params.SubProtocolV111}
 
 // Number of implemented message corresponding to different protocol versions.
 var ProtocolLengths = []uint64{15}
@@ -42,7 +38,7 @@ const (
 	ProtocolMaxMsgSize = 10 * 1024 * 1024 // Maximum cap on the size of a protocol message
 )
 
-// les protocol message codes
+// lhs protocol message codes
 const (
 	// Protocol messages belonging to LPV1
 	StatusMsg          = 0x00

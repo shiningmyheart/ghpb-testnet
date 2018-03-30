@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package eth implements the Hpbereum protocol.
+// Package eth implements the Hpb protocol.
 package hpb
 
 import (
@@ -56,8 +56,8 @@ type LesServer interface {
 	Protocols() []p2p.Protocol
 }
 
-// Hpbereum implements the Hpbereum full node service.
-type Hpbereum struct {
+// Hpb implements the Hpb full node service.
+type Hpb struct {
 	config      *Config
 	chainConfig *params.ChainConfig
 
@@ -93,15 +93,15 @@ type Hpbereum struct {
 	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and hpberbase)
 }
 
-func (s *Hpbereum) AddLesServer(ls LesServer) {
+func (s *Hpb) AddLesServer(ls LesServer) {
 	s.lesServer = ls
 }
 
-// New creates a new Hpbereum object (including the
-// initialisation of the common Hpbereum object)
-func New(ctx *node.ServiceContext, config *Config) (*Hpbereum, error) {
+// New creates a new Hpb object (including the
+// initialisation of the common Hpb object)
+func New(ctx *node.ServiceContext, config *Config) (*Hpb, error) {
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run hpb.Hpbereum in light sync mode, use les.LightHpbereum")
+		return nil, errors.New("can't run hpb.Hpb in light sync mode, use lhs.LightHpb")
 	}
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)
@@ -117,7 +117,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Hpbereum, error) {
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
-	hpb := &Hpbereum{
+	hpb := &Hpb{
 		config:         config,
 		chainDb:        chainDb,
 		chainConfig:    chainConfig,
@@ -133,7 +133,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Hpbereum, error) {
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks),
 	}
 
-	log.Info("Initialising Hpbereum protocol", "versions", ProtocolVersions, "network", config.NetworkId)
+	log.Info("Initialising Hpb protocol", "versions", ProtocolVersions, "network", config.NetworkId)
 
 	if !config.SkipBcVersionCheck {
 		bcVersion := core.GetBlockChainVersion(chainDb)
@@ -206,7 +206,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (hpbdb.Data
 	return db, nil
 }
 
-// CreateConsensusEngine creates the required type of consensus engine instance for an Hpbereum service
+// CreateConsensusEngine creates the required type of consensus engine instance for an Hpb service
 func CreateConsensusEngine(ctx *node.ServiceContext, config *Config, chainConfig *params.ChainConfig, db hpbdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Prometheus == nil {
@@ -217,7 +217,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *Config, chainConfig
 
 // APIs returns the collection of RPC services the hpb package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
-func (s *Hpbereum) APIs() []rpc.API {
+func (s *Hpb) APIs() []rpc.API {
 	apis := hpbapi.GetAPIs(s.ApiBackend)
 
 	// Append any APIs exposed explicitly by the consensus engine
@@ -228,7 +228,7 @@ func (s *Hpbereum) APIs() []rpc.API {
 		{
 			Namespace: "hpb",
 			Version:   "1.0",
-			Service:   NewPublicHpbereumAPI(s),
+			Service:   NewPublicHpbAPI(s),
 			Public:    true,
 		}, {
 			Namespace: "hpb",
@@ -267,11 +267,11 @@ func (s *Hpbereum) APIs() []rpc.API {
 	}...)
 }
 
-func (s *Hpbereum) ResetWithGenesisBlock(gb *types.Block) {
+func (s *Hpb) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Hpbereum) Hpberbase() (eb common.Address, err error) {
+func (s *Hpb) Hpberbase() (eb common.Address, err error) {
 	s.lock.RLock()
 	hpberbase := s.hpberbase
 	s.lock.RUnlock()
@@ -288,7 +288,7 @@ func (s *Hpbereum) Hpberbase() (eb common.Address, err error) {
 }
 
 // set in js console via admin interface or wrapper from cli flags
-func (self *Hpbereum) SetHpberbase(hpberbase common.Address) {
+func (self *Hpb) SetHpberbase(hpberbase common.Address) {
 	self.lock.Lock()
 	self.hpberbase = hpberbase
 	self.lock.Unlock()
@@ -296,7 +296,7 @@ func (self *Hpbereum) SetHpberbase(hpberbase common.Address) {
 	self.miner.SetHpberbase(hpberbase)
 }
 
-func (s *Hpbereum) StartMining(local bool) error {
+func (s *Hpb) StartMining(local bool) error {
 	eb, err := s.Hpberbase()
 	if err != nil {
 		log.Error("Cannot start mining without hpberbase", "err", err)
@@ -323,24 +323,24 @@ func (s *Hpbereum) StartMining(local bool) error {
 	return nil
 }
 
-func (s *Hpbereum) StopMining()         { s.miner.Stop() }
-func (s *Hpbereum) IsMining() bool      { return s.miner.Mining() }
-func (s *Hpbereum) Miner() *miner.Miner { return s.miner }
+func (s *Hpb) StopMining()         { s.miner.Stop() }
+func (s *Hpb) IsMining() bool      { return s.miner.Mining() }
+func (s *Hpb) Miner() *miner.Miner { return s.miner }
 
-func (s *Hpbereum) AccountManager() *accounts.Manager  { return s.accountManager }
-func (s *Hpbereum) BlockChain() *core.BlockChain       { return s.blockchain }
-func (s *Hpbereum) TxPool() *core.TxPool               { return s.txPool }
-func (s *Hpbereum) EventMux() *event.TypeMux           { return s.eventMux }
-func (s *Hpbereum) Engine() consensus.Engine           { return s.engine }
-func (s *Hpbereum) ChainDb() hpbdb.Database            { return s.chainDb }
-func (s *Hpbereum) IsListening() bool                  { return true } // Always listening
-func (s *Hpbereum) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
-func (s *Hpbereum) NetVersion() uint64                 { return s.networkId }
-func (s *Hpbereum) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
+func (s *Hpb) AccountManager() *accounts.Manager  { return s.accountManager }
+func (s *Hpb) BlockChain() *core.BlockChain       { return s.blockchain }
+func (s *Hpb) TxPool() *core.TxPool               { return s.txPool }
+func (s *Hpb) EventMux() *event.TypeMux           { return s.eventMux }
+func (s *Hpb) Engine() consensus.Engine           { return s.engine }
+func (s *Hpb) ChainDb() hpbdb.Database            { return s.chainDb }
+func (s *Hpb) IsListening() bool                  { return true } // Always listening
+func (s *Hpb) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
+func (s *Hpb) NetVersion() uint64                 { return s.networkId }
+func (s *Hpb) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
-func (s *Hpbereum) Protocols() []p2p.Protocol {
+func (s *Hpb) Protocols() []p2p.Protocol {
 	if s.lesServer == nil {
 		return s.protocolManager.SubProtocols
 	}
@@ -348,8 +348,8 @@ func (s *Hpbereum) Protocols() []p2p.Protocol {
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
-// Hpbereum protocol implementation.
-func (s *Hpbereum) Start(srvr *p2p.Server) error {
+// Hpb protocol implementation.
+func (s *Hpb) Start(srvr *p2p.Server) error {
 	// Start the bloom bits servicing goroutines
 	s.startBloomHandlers()
 
@@ -373,8 +373,8 @@ func (s *Hpbereum) Start(srvr *p2p.Server) error {
 }
 
 // Stop implements node.Service, terminating all internal goroutines used by the
-// Hpbereum protocol.
-func (s *Hpbereum) Stop() error {
+// Hpb protocol.
+func (s *Hpb) Stop() error {
 	if s.stopDbUpgrade != nil {
 		s.stopDbUpgrade()
 	}

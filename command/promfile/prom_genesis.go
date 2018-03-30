@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2018 The go-hpb Authors
+// This file is part of the go-hpb.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// The go-hpb is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// The go-hpb is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://wwp.gnu.org/licenses/>.
+// You should have received a copy of the GNU Lesser General Public License
+// along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -61,6 +61,10 @@ func (p *prometh) makeGenesis() {
 	fmt.Println()
 	fmt.Println("How many seconds should blocks take? (default = 15)")
 	genesis.Config.Prometheus.Period = uint64(p.readDefaultInt(15))
+
+	fmt.Println()
+	fmt.Println("How many blocks should voting epoch be ? (default = 30000)")
+	genesis.Config.Prometheus.Epoch = uint64(p.readDefaultInt(30000))
 
 	// We also need the initial list of signers
 	fmt.Println()
@@ -118,20 +122,13 @@ func (p *prometh) makeGenesis() {
 		}
 	}
 
-	//bighash, _ := new(big.Int).SetString(inputHash, 16)
-	//hash := common.BigToAddressHash(bighash)
-	//signersHash = append(signersHash, hash)
-	//address_rand := make([]byte, common.AddressLength + len(randStr))
-
 	genesis.Config.Prometheus.Random = randStrs[0]
 
 	address_hashes := make([]common.AddressHash, (len(signers)/common.AddressLength)*common.AddressHashLength)
 
 	for i, signer := range signers {
 		fmt.Println("randStrs: %s", randStrs[len(signers)-i-1],"signer:",signer.Hex())
-		//address_hashes = append(address_hashes, common.BytesToAddressHash(p.fnv_hash([]byte(signer.Str() + randStr))))
 		address_hashes = append(address_hashes, common.BytesToAddressHash(p.fnv_hash([]byte(signer.Str() + randStrs[len(signers)-i-1]))))
-		//fmt.Println("test %d",address_hashes)
 	}
 
 	genesis.ExtraHash = make([]byte, 32 + len(address_hashes) * common.AddressHashLength + 65)
@@ -139,26 +136,6 @@ func (p *prometh) makeGenesis() {
 	for i, address_hash := range address_hashes {
 		copy(genesis.ExtraHash[32+ i*common.AddressHashLength:], address_hash[:])
 	}
-
-	//address_rand := make([]byte, len(signers)*(common.AddressLength + len(randStr)))
-	//for i := 0; i < len(signers); i++ {
-	//			copy(signers[i][:], genesis.Extra[extraVanity+i*common.AddressLength:])
-	//}
-
-	//hash := p.fnv_hash(address_rand)
-	//hash := p.fnv_hash([]byte(randStr))
-
-	//genesis.ExtraHash = inputHash
-	//genesis.ExtraHash = make([]byte, len(hash))
-
-	//fmt.Println("test %d",genesis.ExtraHash[:])
-
-	//copy(genesis.ExtraHash[:], hash.Bytes())
-	//copy(genesis.ExtraHash[:], hash)
-
-	//fmt.Println("%d",genesis.ExtraHash[:])
-
-	// Consensus all set, just ask for initial funds and go
 	fmt.Println()
 	fmt.Println("Which accounts should be pre-funded? (advisable at least one)")
 	for {
@@ -173,9 +150,9 @@ func (p *prometh) makeGenesis() {
 	}
 
 	// Add a batch of precompile balances to avoid them getting deleted
-	for i := int64(0); i < 256; i++ {
-		genesis.Alloc[common.BigToAddress(big.NewInt(i))] = core.GenesisAccount{Balance: big.NewInt(1)}
-	}
+	//for i := int64(0); i < 256; i++ {
+	//	genesis.Alloc[common.BigToAddress(big.NewInt(i))] = core.GenesisAccount{Balance: big.NewInt(1)}
+	//}
 	fmt.Println()
 
 	// Query the user for some custom extras
@@ -231,7 +208,7 @@ func (p *prometh) manageGenesis() {
 
 		out, _ := json.MarshalIndent(p.conf.genesis, "", "  ")
 
-		fmt.Printf("%s", out)
+		//fmt.Printf("%s", out)
 
 		if err := ioutil.WriteFile(p.readDefaultString(fmt.Sprintf("%s.json", p.network)), out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)
