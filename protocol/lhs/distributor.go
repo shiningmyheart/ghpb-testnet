@@ -16,7 +16,7 @@
 
 // Package light implements on-demand retrieval capable state and chain objects
 // for the Hpb Light Client.
-package les
+package lhs
 
 import (
 	"container/list"
@@ -41,7 +41,7 @@ type requestDistributor struct {
 	lock             sync.Mutex
 }
 
-// distPeer is an LES server peer interface for the request distributor.
+// distPeer is an LHS server peer interface for the request distributor.
 // waitBefore returns either the necessary waiting time before sending a request
 // with the given upper estimated cost or the estimated remaining relative buffer
 // value after sending such a request (in which case the request can be sent

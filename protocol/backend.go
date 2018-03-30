@@ -101,7 +101,7 @@ func (s *Hpb) AddLesServer(ls LesServer) {
 // initialisation of the common Hpb object)
 func New(ctx *node.ServiceContext, config *Config) (*Hpb, error) {
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run hpb.Hpb in light sync mode, use les.LightHpb")
+		return nil, errors.New("can't run hpb.Hpb in light sync mode, use lhs.LightHpb")
 	}
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)

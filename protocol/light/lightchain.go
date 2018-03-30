@@ -23,16 +23,16 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/hashicorp/golang-lru"
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
+	"github.com/hpb-project/ghpb/common/log"
+	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/consensus"
 	"github.com/hpb-project/ghpb/core"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/core/event"
-	"github.com/hpb-project/ghpb/common/log"
-	"github.com/hpb-project/ghpb/common/constant"
-	"github.com/hpb-project/ghpb/common/rlp"
-	"github.com/hashicorp/golang-lru"
 )
 
 var (

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpb Subprotocol.
-package les
+// Package lhs implements the Light Hpb Subprotocol.
+package lhs
 
 import (
 	"encoding/binary"
@@ -153,7 +153,7 @@ func NewProtocolManager(chainConfig *params.ChainConfig, lightSync bool, network
 		// Compatible, initialize the sub-protocol
 		version := version // Closure for the run
 		manager.SubProtocols = append(manager.SubProtocols, p2p.Protocol{
-			Name:    "les",
+			Name:    "lhs",
 			Version: version,
 			Length:  ProtocolLengths[i],
 			Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
@@ -252,12 +252,12 @@ func (pm *ProtocolManager) newPeer(pv uint, nv uint64, p *p2p.Peer, rw p2p.MsgRe
 	return newPeer(pv, nv, p, newMeteredMsgWriter(rw))
 }
 
-// handle is the callback invoked to manage the life cycle of a les peer. When
+// handle is the callback invoked to manage the life cycle of a lhs peer. When
 // this function terminates, the peer is disconnected.
 func (pm *ProtocolManager) handle(p *peer) error {
 	p.Log().Debug("Light Hpb peer connected", "name", p.Name())
 
-	// Execute the LES handshake
+	// Execute the LHS handshake
 	td, head, genesis := pm.blockchain.Status()
 	headNum := core.GetBlockNumber(pm.chainDb, head)
 	if err := p.Handshake(td, head, headNum, genesis, pm.server); err != nil {

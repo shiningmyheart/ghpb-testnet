@@ -16,7 +16,7 @@
 
 // Package light implements on-demand retrieval capable state and chain objects
 // for the Hpb Light Client.
-package les
+package lhs
 
 import (
 	"context"
@@ -159,7 +159,7 @@ func (rm *retrieveManager) sendReq(reqID uint64, req *distReq, val validatorFunc
 	return r
 }
 
-// deliver is called by the LES protocol manager to deliver reply messages to waiting requests
+// deliver is called by the LHS protocol manager to deliver reply messages to waiting requests
 func (rm *retrieveManager) deliver(peer distPeer, msg *Msg) error {
 	rm.lock.RLock()
 	req, ok := rm.sentReqs[msg.ReqID]

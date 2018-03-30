@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpb Subprotocol.
-package les
+// Package lhs implements the Light Hpb Subprotocol.
+package lhs
 
 import (
 	"encoding/binary"
@@ -28,7 +28,7 @@ import (
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/protocol"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/protocol/les/flowcontrol"
+	"github.com/hpb-project/ghpb/protocol/lhs/flowcontrol"
 	"github.com/hpb-project/ghpb/protocol/light"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/network/p2p"
@@ -74,7 +74,7 @@ func (s *LesServer) Protocols() []p2p.Protocol {
 	return s.protocolManager.SubProtocols
 }
 
-// Start starts the LES server
+// Start starts the LHS server
 func (s *LesServer) Start(srvr *p2p.Server) {
 	s.protocolManager.Start()
 	/*
@@ -88,7 +88,7 @@ func (s *LesServer) Start(srvr *p2p.Server) {
 	*/
 }
 
-// Stop stops the LES service
+// Stop stops the LHS service
 func (s *LesServer) Stop() {
 	s.fcCostStats.store()
 	s.fcManager.Stop()

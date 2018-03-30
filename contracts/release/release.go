@@ -29,7 +29,7 @@ import (
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/protocol"
 	"github.com/hpb-project/ghpb/internal/hpbapi"
-	"github.com/hpb-project/ghpb/protocol/les"
+	"github.com/hpb-project/ghpb/protocol/lhs"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/network/p2p"
@@ -66,7 +66,7 @@ func NewReleaseService(ctx *node.ServiceContext, config Config) (node.Service, e
 	if err := ctx.Service(&hpbTmp); err == nil {
 		apiBackend = hpbTmp.ApiBackend
 	} else {
-		var hpbTmp *les.LightHpb
+		var hpbTmp *lhs.LightHpb
 		if err := ctx.Service(&hpbTmp); err == nil {
 			apiBackend = hpbTmp.ApiBackend
 		} else {

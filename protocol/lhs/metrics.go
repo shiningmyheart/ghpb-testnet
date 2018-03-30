@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-package les
+package lhs
 
 import (
 	"github.com/hpb-project/ghpb/metrics"
@@ -58,10 +58,10 @@ var (
 		reqReceiptInTrafficMeter  = metrics.NewMeter("eth/req/receipts/in/traffic")
 		reqReceiptOutPacketsMeter = metrics.NewMeter("eth/req/receipts/out/packets")
 		reqReceiptOutTrafficMeter = metrics.NewMeter("eth/req/receipts/out/traffic")*/
-	miscInPacketsMeter  = metrics.NewMeter("les/misc/in/packets")
-	miscInTrafficMeter  = metrics.NewMeter("les/misc/in/traffic")
-	miscOutPacketsMeter = metrics.NewMeter("les/misc/out/packets")
-	miscOutTrafficMeter = metrics.NewMeter("les/misc/out/traffic")
+	miscInPacketsMeter  = metrics.NewMeter("lhs/misc/in/packets")
+	miscInTrafficMeter  = metrics.NewMeter("lhs/misc/in/traffic")
+	miscOutPacketsMeter = metrics.NewMeter("lhs/misc/out/packets")
+	miscOutTrafficMeter = metrics.NewMeter("lhs/misc/out/traffic")
 )
 
 // meteredMsgReadWriter is a wrapper around a p2p.MsgReadWriter, capable of

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpb Subprotocol.
-package les
+// Package lhs implements the Light Hpb Subprotocol.
+package lhs
 
 import (
 	"errors"
@@ -27,7 +27,7 @@ import (
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/protocol"
-	"github.com/hpb-project/ghpb/protocol/les/flowcontrol"
+	"github.com/hpb-project/ghpb/protocol/lhs/flowcontrol"
 	"github.com/hpb-project/ghpb/network/p2p"
 	"github.com/hpb-project/ghpb/common/rlp"
 )
@@ -325,7 +325,7 @@ func (p *peer) sendReceiveHandshake(sendList keyValueList) (keyValueList, error)
 	return recvList, nil
 }
 
-// Handshake executes the les protocol handshake, negotiating version number,
+// Handshake executes the lhs protocol handshake, negotiating version number,
 // network IDs, difficulties, head and genesis blocks.
 func (p *peer) Handshake(td *big.Int, head common.Hash, headNum uint64, genesis common.Hash, server *LesServer) error {
 	p.lock.Lock()
@@ -388,7 +388,7 @@ func (p *peer) Handshake(td *big.Int, head common.Hash, headNum uint64, genesis 
 		return errResp(ErrProtocolVersionMismatch, "%d (!= %d)", rVersion, p.version)
 	}
 	if server != nil {
-		// until we have a proper peer connectivity API, allow LES connection to other servers
+		// until we have a proper peer connectivity API, allow LHS connection to other servers
 		/*if recv.get("serveStateSince", nil) == nil {
 			return errResp(ErrUselessPeer, "wanted client, got server")
 		}*/
@@ -426,7 +426,7 @@ func (p *peer) Handshake(td *big.Int, head common.Hash, headNum uint64, genesis 
 // String implements fmt.Stringer.
 func (p *peer) String() string {
 	return fmt.Sprintf("Peer %s [%s]", p.id,
-		fmt.Sprintf("les/%d", p.version),
+		fmt.Sprintf("lhs/%d", p.version),
 	)
 }
 

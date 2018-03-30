@@ -23,11 +23,11 @@ import (
 	"math/big"
 
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/crypto"
+	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/types"
-	"github.com/hpb-project/ghpb/common/crypto"
 	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/common/rlp"
 )
 
 // NoOdr is the default context passed to an ODR capable function when the ODR

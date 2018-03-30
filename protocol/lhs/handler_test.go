@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-package les
+package lhs
 
 import (
 	"math/rand"
 	"testing"
 
 	"github.com/hpb-project/ghpb/common"
-	"github.com/hpb-project/ghpb/core"
-	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/common/crypto"
-	"github.com/hpb-project/ghpb/protocol/downloader"
-	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/network/p2p"
 	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/common/trie"
+	"github.com/hpb-project/ghpb/core"
+	"github.com/hpb-project/ghpb/core/types"
+	"github.com/hpb-project/ghpb/network/p2p"
+	"github.com/hpb-project/ghpb/protocol/downloader"
+	"github.com/hpb-project/ghpb/storage"
 )
 
 func expectResponse(r p2p.MsgReader, msgcode, reqID, bv uint64, data interface{}) error {

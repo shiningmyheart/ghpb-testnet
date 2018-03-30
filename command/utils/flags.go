@@ -42,7 +42,7 @@ import (
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/storage"
 	"github.com/hpb-project/ghpb/protocol/hpbstats"
-	"github.com/hpb-project/ghpb/protocol/les"
+	"github.com/hpb-project/ghpb/protocol/lhs"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/metrics"
 	"github.com/hpb-project/ghpb/node"
@@ -164,12 +164,12 @@ var (
 
 	LightServFlag = cli.IntFlag{
 		Name:  "lightserv",
-		Usage: "Maximum percentage of time allowed for serving LES requests (0-90)",
+		Usage: "Maximum percentage of time allowed for serving LHS requests (0-90)",
 		Value: 0,
 	}
 	LightPeersFlag = cli.IntFlag{
 		Name:  "lightpeers",
-		Usage: "Maximum number of LES client peers",
+		Usage: "Maximum number of LHS client peers",
 		Value: 20,
 	}
 	LightKDFFlag = cli.BoolFlag{
@@ -924,13 +924,13 @@ func RegisterHpbService(stack *node.Node, cfg *hpb.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, cfg)
+			return lhs.New(ctx, cfg)
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 			fullNode, err := hpb.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
-				ls, _ := les.NewLesServer(fullNode, cfg)
+				ls, _ := lhs.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
 			}
 			return fullNode, err
@@ -945,11 +945,11 @@ func RegisterHpbService(stack *node.Node, cfg *hpb.Config) {
 // th egiven node.
 func RegisterHpbStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both eth and les services
+		// Retrieve both eth and lhs services
 		var hpbServ *hpb.Hpb
 		ctx.Service(&hpbServ)
 
-		var lesServ *les.LightHpb
+		var lesServ *lhs.LightHpb
 		ctx.Service(&lesServ)
 
 		return hpbstats.New(url, hpbServ, lesServ)

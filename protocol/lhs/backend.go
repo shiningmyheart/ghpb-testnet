@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-hpb. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Hpb Subprotocol.
-package les
+// Package lhs implements the Light Hpb Subprotocol.
+package lhs
 
 import (
 	"fmt"
@@ -24,23 +24,23 @@ import (
 
 	"github.com/hpb-project/ghpb/account"
 	"github.com/hpb-project/ghpb/common"
+	"github.com/hpb-project/ghpb/common/constant"
+	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/consensus"
 	"github.com/hpb-project/ghpb/core"
+	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/core/types"
+	"github.com/hpb-project/ghpb/internal/hpbapi"
+	"github.com/hpb-project/ghpb/network/p2p"
+	"github.com/hpb-project/ghpb/network/p2p/discv5"
+	rpc "github.com/hpb-project/ghpb/network/rpc"
+	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/protocol"
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
-	"github.com/hpb-project/ghpb/storage"
-	"github.com/hpb-project/ghpb/core/event"
-	"github.com/hpb-project/ghpb/internal/hpbapi"
 	"github.com/hpb-project/ghpb/protocol/light"
-	"github.com/hpb-project/ghpb/common/log"
-	"github.com/hpb-project/ghpb/node"
-	"github.com/hpb-project/ghpb/network/p2p"
-	"github.com/hpb-project/ghpb/network/p2p/discv5"
-	"github.com/hpb-project/ghpb/common/constant"
-	rpc "github.com/hpb-project/ghpb/network/rpc"
+	"github.com/hpb-project/ghpb/storage"
 )
 
 type LightHpb struct {
@@ -60,7 +60,7 @@ type LightHpb struct {
 	// DB interfaces
 	chainDb hpbdb.Database // Block chain database
 
-	ApiBackend *LesApiBackend
+	ApiBackend *LhsApiBackend
 
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
@@ -116,7 +116,7 @@ func New(ctx *node.ServiceContext, config *hpb.Config) (*LightHpb, error) {
 	if hpb.protocolManager, err = NewProtocolManager(hpb.chainConfig, true, config.NetworkId, hpb.eventMux, hpb.engine, hpb.peers, hpb.blockchain, nil, chainDb, hpb.odr, hpb.relay, quitSync, &hpb.wg); err != nil {
 		return nil, err
 	}
-	hpb.ApiBackend = &LesApiBackend{hpb, nil}
+	hpb.ApiBackend = &LhsApiBackend{hpb, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.GasPrice
@@ -126,7 +126,7 @@ func New(ctx *node.ServiceContext, config *hpb.Config) (*LightHpb, error) {
 }
 
 func lesTopic(genesisHash common.Hash) discv5.Topic {
-	return discv5.Topic("LES@" + common.Bytes2Hex(genesisHash.Bytes()[0:8]))
+	return discv5.Topic("LHS@" + common.Bytes2Hex(genesisHash.Bytes()[0:8]))
 }
 
 type LightDummyAPI struct{}

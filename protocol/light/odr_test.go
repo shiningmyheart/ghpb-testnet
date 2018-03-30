@@ -284,7 +284,7 @@ func testChainOdr(t *testing.T, protocol int, fn odrTestFn) {
 		}
 	}
 
-	// expect retrievals to fail (except genesis block) without a les peer
+	// expect retrievals to fail (except genesis block) without a lhs peer
 	t.Log("checking without ODR")
 	odr.disable = true
 	test(1)
