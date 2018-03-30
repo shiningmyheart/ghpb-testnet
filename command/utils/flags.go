@@ -581,7 +581,7 @@ func setNAT(ctx *cli.Context, cfg *p2p.Config) {
 	if ctx.GlobalIsSet(NATFlag.Name) {
 		natif, err := nat.Parse(ctx.GlobalString(NATFlag.Name))
 		if err != nil {
-			Fatalf("Option %s: %v", NATFlag.Name, err)
+			Fatalf("Option %s, %s: %v", ctx.GlobalString(NATFlag.Name),NATFlag.Name, err)
 		}
 		cfg.NAT = natif
 	}
