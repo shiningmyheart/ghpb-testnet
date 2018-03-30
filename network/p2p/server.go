@@ -73,6 +73,9 @@ type Config struct {
 	// Disabling is useful for protocol debugging (manual topology).
 	NoDiscovery bool
 
+	ZkDiscovery bool
+
+	ZkAddress string
 	// DiscoveryV5 specifies whether the the new topic-discovery based V5 discovery
 	// protocol should be started or not.
 	//DiscoveryV5 bool `toml:",omitempty"`
@@ -181,6 +184,7 @@ type Server struct {
 	peerFeed      event.Feed
 
 	local         NodeType
+	quitZk		  chan struct{}
 }
 
 type peerOpFunc func(map[discover.NodeID]*Peer)
@@ -360,6 +364,7 @@ func (srv *Server) Stop() {
 		// this unblocks listener Accept
 		srv.listener.Close()
 	}
+	close(srv.quitZk)
 	close(srv.quit)
 	srv.loopWG.Wait()
 }
@@ -442,6 +447,7 @@ func (srv *Server) Start() (err error) {
 		dynPeers = 0
 	}
 
+
 	for _, n := range srv.StaticNodes {
 		switch n.Role {
 		case discover.CommRole:
@@ -452,6 +458,17 @@ func (srv *Server) Start() (err error) {
 			log.Debug("Add one pre-committee node to discover.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
 		default:
 			log.Debug("Type is not accept to add in static node.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
+		}
+	}
+
+	srv.quitZk = make(chan struct{})
+	//如果当前是委员会、候选委员、access节点，则将自己注册到zk中，并从zk中/nodes拉取static nodes
+	if srv.local == NtCommitt || srv.local == NtPrecomm {
+		//如果是access 则不写入 只拉取
+		if srv.local == NtAccess {
+			go StartZk(srv,true)
+		}else {
+			go StartZk(srv,false)
 		}
 	}
 

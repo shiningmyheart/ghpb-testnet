@@ -418,6 +418,14 @@ var (
 		Name:  "nodiscover",
 		Usage: "Disables the peer discovery mechanism (manual peer addition)",
 	}
+	ZkDiscoverFlag = cli.BoolFlag{
+		Name:  "zkdiscover",
+		Usage: "Enables zookeeper discover pre-cmt & cmt",
+	}
+	ZkAddrFlag = cli.StringFlag{
+		Name:  "zkaddr",
+		Usage: "zookeeper address",
+	}
 	DiscoveryV5Flag = cli.BoolFlag{
 		Name:  "v5disc",
 		Usage: "Enables the experimental RLPx V5 (Topic Discovery) mechanism",
@@ -734,6 +742,13 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if ctx.GlobalIsSet(NoDiscoverFlag.Name) || ctx.GlobalBool(LightModeFlag.Name) {
 		cfg.NoDiscovery = true
 	}
+	if ctx.GlobalIsSet(ZkDiscoverFlag.Name) || ctx.GlobalBool(LightModeFlag.Name) {
+		cfg.ZkDiscovery = true
+	}
+	if ctx.GlobalIsSet(ZkAddrFlag.Name) || ctx.GlobalBool(LightModeFlag.Name) {
+		cfg.ZkAddress = ctx.GlobalString(ZkAddrFlag.Name)
+	}
+
 
 	// if we're running a light client or server, force enable the v5 peer discovery
 	// unless it is explicitly disabled with --nodiscover note that explicitly specifying

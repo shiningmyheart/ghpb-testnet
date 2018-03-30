@@ -280,6 +280,12 @@
 			"revisionTime": "2017-09-02T20:46:57Z"
 		},
 		{
+			"checksumSHA1": "ljd3FhYRJ91cLZz3wsH9BQQ2JbA=",
+			"path": "github.com/pkg/errors",
+			"revision": "816c9085562cd7ee03e7f8188a1cfd942858cded",
+			"revisionTime": "2018-03-11T21:45:15Z"
+		},
+		{
 			"checksumSHA1": "I87tkF1e/hrl4d/XIKFfkPRq1ww=",
 			"path": "github.com/prometheus/client_golang/prometheus",
 			"revision": "d49167c4b9f3c4451707560c5c71471ff5291aaa",
@@ -416,6 +422,12 @@
 			"path": "github.com/rs/xhandler",
 			"revision": "ed27b6fd65218132ee50cd95f38474a3d8a2cd12",
 			"revisionTime": "2016-06-18T19:32:21Z"
+		},
+		{
+			"checksumSHA1": "ze1R6Lrk0kW0cX24ZdZD6ZpIDCo=",
+			"path": "github.com/samuel/go-zookeeper/zk",
+			"revision": "c4fab1ac1bec58281ad0667dc3f0907a9476ac47",
+			"revisionTime": "2018-01-30T19:37:22Z"
 		},
 		{
 			"checksumSHA1": "yHbyLpI/Meh0DGrmi8x6FrDxxUY=",

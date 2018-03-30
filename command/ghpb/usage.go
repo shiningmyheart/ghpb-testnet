@@ -142,6 +142,8 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.NATFlag,
 			utils.NodeTypeFlag,
 			utils.NoDiscoverFlag,
+			utils.ZkDiscoverFlag,
+			utils.ZkAddrFlag,
 			utils.DiscoveryV5Flag,
 			utils.NetrestrictFlag,
 			utils.NodeKeyFileFlag,
