@@ -40,7 +40,7 @@ const (
 	staticPeerCheckInterval = 15 * time.Second
 
 	// Maximum number of concurrently handshaking inbound connections.
-	maxAcceptConns = 50
+	maxAcceptConns = 100
 
 	// Maximum number of concurrently dialing outbound connections.
 	maxActiveDialTasks = 16
@@ -792,7 +792,7 @@ func (srv *Server) protoHandshakeChecks(peers map[discover.NodeID]*Peer, c *conn
 
 func (srv *Server) encHandshakeChecks(peers map[discover.NodeID]*Peer, c *conn) error {
 	switch {
-	case !c.is(trustedConn|staticDialedConn) && len(peers) >= srv.MaxPeers:
+	case len(peers) >= srv.MaxPeers:
 		return DiscTooManyPeers
 	case peers[c.id] != nil:
 		return DiscAlreadyConnected
