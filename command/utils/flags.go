@@ -42,7 +42,7 @@ import (
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/storage"
 	"github.com/hpb-project/ghpb/protocol/hpbstats"
-	"github.com/hpb-project/ghpb/protocol/les"
+	"github.com/hpb-project/ghpb/protocol/lhs"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/metrics"
 	"github.com/hpb-project/ghpb/node"
@@ -164,12 +164,12 @@ var (
 
 	LightServFlag = cli.IntFlag{
 		Name:  "lightserv",
-		Usage: "Maximum percentage of time allowed for serving LES requests (0-90)",
+		Usage: "Maximum percentage of time allowed for serving LHS requests (0-90)",
 		Value: 0,
 	}
 	LightPeersFlag = cli.IntFlag{
 		Name:  "lightpeers",
-		Usage: "Maximum number of LES client peers",
+		Usage: "Maximum number of LHS client peers",
 		Value: 20,
 	}
 	LightKDFFlag = cli.BoolFlag{
@@ -781,7 +781,7 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 	case ctx.GlobalIsSet(DataDirFlag.Name):
 		cfg.DataDir = ctx.GlobalString(DataDirFlag.Name)
 	case ctx.GlobalBool(DevModeFlag.Name):
-		cfg.DataDir = filepath.Join(os.TempDir(), "hpbereum_dev_mode")
+		cfg.DataDir = filepath.Join(os.TempDir(), "hpb_dev_mode")
 	case ctx.GlobalBool(TestnetFlag.Name):
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
 	}
@@ -919,25 +919,25 @@ func SetHpbConfig(ctx *cli.Context, stack *node.Node, cfg *hpb.Config) {
 	}
 }
 
-// RegisterHpbService adds an Hpbereum client to the stack.
+// RegisterHpbService adds an Hpb client to the stack.
 func RegisterHpbService(stack *node.Node, cfg *hpb.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, cfg)
+			return lhs.New(ctx, cfg)
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 			fullNode, err := hpb.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
-				ls, _ := les.NewLesServer(fullNode, cfg)
+				ls, _ := lhs.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
 			}
 			return fullNode, err
 		})
 	}
 	if err != nil {
-		Fatalf("Failed to register the Hpbereum service: %v", err)
+		Fatalf("Failed to register the Hpb service: %v", err)
 	}
 }
 
@@ -945,16 +945,16 @@ func RegisterHpbService(stack *node.Node, cfg *hpb.Config) {
 // th egiven node.
 func RegisterHpbStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both eth and les services
-		var hpbServ *hpb.Hpbereum
+		// Retrieve both eth and lhs services
+		var hpbServ *hpb.Hpb
 		ctx.Service(&hpbServ)
 
-		var lesServ *les.LightHpbereum
+		var lesServ *lhs.LightHpb
 		ctx.Service(&lesServ)
 
 		return hpbstats.New(url, hpbServ, lesServ)
 	}); err != nil {
-		Fatalf("Failed to register the Hpbereum Stats service: %v", err)
+		Fatalf("Failed to register the Hpb Stats service: %v", err)
 	}
 }
 

@@ -499,7 +499,7 @@ func (meta debMetadata) ExeConflicts(exe debExecutable) string {
 		// be preferred and the conflicting files should be handled via
 		// alternates. We might do this eventually but using a conflict is
 		// easier now.
-		return "hpbereum, " + exe.Name
+		return "hpb, " + exe.Name
 	}
 	return ""
 }

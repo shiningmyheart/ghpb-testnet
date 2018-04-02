@@ -29,24 +29,24 @@ import (
 	"github.com/hpb-project/ghpb/network/rpc"
 )
 
-// ContractBackend implements bind.ContractBackend with direct calls to Hpbereum
+// ContractBackend implements bind.ContractBackend with direct calls to Hpb
 // internals to support operating on contracts within subprotocols like eth and
 // swarm.
 //
-// Internally this backend uses the already exposed API endpoints of the Hpbereum
+// Internally this backend uses the already exposed API endpoints of the Hpb
 // object. These should be rewritten to internal Go method calls when the Go API
 // is refactored to support a clean library use.
 type ContractBackend struct {
-	eapi  *hpbapi.PublicHpbereumAPI        // Wrapper around the Hpbereum object to access metadata
+	eapi  *hpbapi.PublicHpbAPI        // Wrapper around the Hpb object to access metadata
 	bcapi *hpbapi.PublicBlockChainAPI      // Wrapper around the blockchain to access chain data
 	txapi *hpbapi.PublicTransactionPoolAPI // Wrapper around the transaction pool to access transaction data
 }
 
 // NewContractBackend creates a new native contract backend using an existing
-// Hpbereum object.
+// Hpb object.
 func NewContractBackend(apiBackend hpbapi.Backend) *ContractBackend {
 	return &ContractBackend{
-		eapi:  hpbapi.NewPublicHpbereumAPI(apiBackend),
+		eapi:  hpbapi.NewPublicHpbAPI(apiBackend),
 		bcapi: hpbapi.NewPublicBlockChainAPI(apiBackend),
 		txapi: hpbapi.NewPublicTransactionPoolAPI(apiBackend, new(hpbapi.AddrLocker)),
 	}
@@ -62,7 +62,7 @@ func (b *ContractBackend) PendingCodeAt(ctx context.Context, contract common.Add
 	return b.bcapi.GetCode(ctx, contract, rpc.PendingBlockNumber)
 }
 
-// ContractCall implements bind.ContractCaller executing an Hpbereum contract
+// ContractCall implements bind.ContractCaller executing an Hpb contract
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
 func (b *ContractBackend) CallContract(ctx context.Context, msg hpb_project.CallMsg, blockNum *big.Int) ([]byte, error) {
@@ -70,7 +70,7 @@ func (b *ContractBackend) CallContract(ctx context.Context, msg hpb_project.Call
 	return out, err
 }
 
-// ContractCall implements bind.ContractCaller executing an Hpbereum contract
+// ContractCall implements bind.ContractCaller executing an Hpb contract
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
 func (b *ContractBackend) PendingCallContract(ctx context.Context, msg hpb_project.CallMsg) ([]byte, error) {

@@ -37,7 +37,7 @@ import (
 	"github.com/hpb-project/ghpb/core/types"
 	"github.com/hpb-project/ghpb/protocol"
 	"github.com/hpb-project/ghpb/core/event"
-	"github.com/hpb-project/ghpb/protocol/les"
+	"github.com/hpb-project/ghpb/protocol/lhs"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/network/rpc"
 	"github.com/hpb-project/ghpb/network/p2p"
@@ -66,12 +66,12 @@ type blockChain interface {
 	SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription
 }
 
-// Service implements an Hpbereum netstats reporting daemon that pushes local
+// Service implements an Hpb netstats reporting daemon that pushes local
 // chain statistics up to a monitoring server.
 type Service struct {
 	server *p2p.Server        // Peer-to-peer server to retrieve networking infos
-	hpb    *hpb.Hpbereum      // Full Hpbereum service if monitoring a full node
-	les    *les.LightHpbereum // Light Hpbereum service if monitoring a light node
+	hpb    *hpb.Hpb      // Full Hpb service if monitoring a full node
+	lhs    *lhs.LightHpb // Light Hpb service if monitoring a light node
 	engine consensus.Engine   // Consensus engine to retrieve variadic block fields
 
 	node   string             // Name of the node to display on the monitoring page
@@ -83,7 +83,7 @@ type Service struct {
 }
 
 // New returns a monitoring service ready for stats reporting.
-func New(url string, ethServ *hpb.Hpbereum, lesServ *les.LightHpbereum) (*Service, error) {
+func New(url string, hpbServ *hpb.Hpb, lhsServ *lhs.LightHpb) (*Service, error) {
 	// Parse the netstats connection url
 	re := regexp.MustCompile("([^:@]*)(:([^@]*))?@(.+)")
 	parts := re.FindStringSubmatch(url)
@@ -92,14 +92,14 @@ func New(url string, ethServ *hpb.Hpbereum, lesServ *les.LightHpbereum) (*Servic
 	}
 	// Assemble and return the stats service
 	var engine consensus.Engine
-	if ethServ != nil {
-		engine = ethServ.Engine()
+	if hpbServ != nil {
+		engine = hpbServ.Engine()
 	} else {
-		engine = lesServ.Engine()
+		engine = lhsServ.Engine()
 	}
 	return &Service{
-		hpb:    ethServ,
-		les:    lesServ,
+		hpb:    hpbServ,
+		lhs:    lhsServ,
 		engine: engine,
 		node:   parts[1],
 		pass:   parts[3],
@@ -142,8 +142,8 @@ func (s *Service) loop() {
 		blockchain = s.hpb.BlockChain()
 		txpool = s.hpb.TxPool()
 	} else {
-		blockchain = s.les.BlockChain()
-		txpool = s.les.TxPool()
+		blockchain = s.lhs.BlockChain()
+		txpool = s.lhs.TxPool()
 	}
 
 	chainHeadCh := make(chan core.ChainHeadEvent, chainHeadChanSize)
@@ -378,8 +378,8 @@ func (s *Service) login(conn *websocket.Conn) error {
 		network = fmt.Sprintf("%d", info.(*hpb.HpbNodeInfo).Network)
 		protocol = fmt.Sprintf("hpb/%d", hpb.ProtocolVersions[0])
 	} else {
-		network = fmt.Sprintf("%d", infos.Protocols["les"].(*hpb.HpbNodeInfo).Network)
-		protocol = fmt.Sprintf("les/%d", les.ProtocolVersions[0])
+		network = fmt.Sprintf("%d", infos.Protocols["lhs"].(*hpb.HpbNodeInfo).Network)
+		protocol = fmt.Sprintf("lhs/%d", lhs.ProtocolVersions[0])
 	}
 	auth := &authMsg{
 		Id: s.node,
@@ -546,9 +546,9 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		if block != nil {
 			header = block.Header()
 		} else {
-			header = s.les.BlockChain().CurrentHeader()
+			header = s.lhs.BlockChain().CurrentHeader()
 		}
-		td = s.les.BlockChain().GetTd(header.Hash(), header.Number.Uint64())
+		td = s.lhs.BlockChain().GetTd(header.Hash(), header.Number.Uint64())
 		txs = []txStats{}
 	}
 	// Assemble and return the block stats
@@ -585,7 +585,7 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 		if s.hpb != nil {
 			head = s.hpb.BlockChain().CurrentHeader().Number.Int64()
 		} else {
-			head = s.les.BlockChain().CurrentHeader().Number.Int64()
+			head = s.lhs.BlockChain().CurrentHeader().Number.Int64()
 		}
 		start := head - historyUpdateRange + 1
 		if start < 0 {
@@ -603,7 +603,7 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 		if s.hpb != nil {
 			block = s.hpb.BlockChain().GetBlockByNumber(number)
 		} else {
-			if header := s.les.BlockChain().GetHeaderByNumber(number); header != nil {
+			if header := s.lhs.BlockChain().GetHeaderByNumber(number); header != nil {
 				block = types.NewBlockWithHeader(header)
 			}
 		}
@@ -644,7 +644,7 @@ func (s *Service) reportPending(conn *websocket.Conn) error {
 	if s.hpb != nil {
 		pending, _ = s.hpb.TxPool().Stats()
 	} else {
-		pending = s.les.TxPool().Stats()
+		pending = s.lhs.TxPool().Stats()
 	}
 	// Assemble the transaction stats and send it to the server
 	log.Trace("Sending pending transactions to ethstats", "count", pending)
@@ -689,8 +689,8 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 		price, _ := s.hpb.ApiBackend.SuggestPrice(context.Background())
 		gasprice = int(price.Uint64())
 	} else {
-		sync := s.les.Downloader().Progress()
-		syncing = s.les.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
+		sync := s.lhs.Downloader().Progress()
+		syncing = s.lhs.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
 	}
 	// Assemble the node stats and send it to the server
 	log.Trace("Sending node details to ethstats")
