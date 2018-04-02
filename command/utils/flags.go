@@ -402,7 +402,7 @@ var (
 	}
 	NodeTypeFlag = cli.StringFlag{
 		Name:  "nodetype",
-		Usage: "P2P node type(HPnode,prenode,access,light)",
+		Usage: "P2P node type(hpnode,prenode,access,light)",
 		Value: "light",
 	}
 	NodeKeyHexFlag = cli.StringFlag{
