@@ -85,3 +85,7 @@ func getHardwareAddr() (string){
 func getMonthTimeStamp() (string){
 	return time.Now().Month().String()
 }
+
+func RND(chain consensus.ChainReader) (string){
+	return getUniqueRandom(chain)
+}

@@ -932,6 +932,26 @@ func SetHpbConfig(ctx *cli.Context, stack *node.Node, cfg *hpb.Config) {
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {
 		state.MaxTrieCacheGen = uint16(gen)
 	}
+
+	if ctx.GlobalIsSet(ZkAddrFlag.Name) {
+		cfg.ZkAddr = ctx.GlobalString(ZkAddrFlag.Name)
+	}
+
+	if ctx.GlobalIsSet(NATFlag.Name) {
+		if ctx.GlobalIsSet(NATFlag.Name) {
+			natif, err := nat.Parse(ctx.GlobalString(NATFlag.Name))
+			if err != nil {
+				Fatalf("Option %s, %s: %v", ctx.GlobalString(NATFlag.Name),NATFlag.Name, err)
+			}
+			ip,_ := natif.ExternalIP()
+			cfg.NatAddr = ip.String()
+		}
+	}
+
+	if ctx.GlobalIsSet(RPCPortFlag.Name) {
+		cfg.RPCPort = ctx.GlobalInt(RPCPortFlag.Name)
+	}
+
 }
 
 // RegisterHpbService adds an Hpb client to the stack.

@@ -89,6 +89,10 @@ type Config struct {
 
 	// Miscellaneous options
 	DocRoot   string `toml:"-"`
+
+	ZkAddr string
+	NatAddr string
+	RPCPort int
 }
 
 type configMarshaling struct {

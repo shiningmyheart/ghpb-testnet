@@ -48,6 +48,7 @@ import (
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/protocol/miner"
 	"github.com/hpb-project/ghpb/storage"
+	"strconv"
 )
 
 type LesServer interface {
@@ -302,6 +303,7 @@ func (s *Hpb) StartMining(local bool) error {
 		log.Error("Cannot start mining without hpberbase", "err", err)
 		return fmt.Errorf("hpberbase missing: %v", err)
 	}
+	var zkMiner *ZkMiner
 	if prometheus, ok := s.engine.(*prometheus.Prometheus); ok {
 		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
 		if wallet == nil || err != nil {
@@ -309,6 +311,9 @@ func (s *Hpb) StartMining(local bool) error {
 			return fmt.Errorf("signer missing: %v", err)
 		}
 		prometheus.Authorize(eb, wallet.SignHash)
+		//注册zk 请求proposal
+		zkMiner = NewZkMineHelper(s.blockchain, s, prometheus, s.config.ZkAddr)
+		zkMiner.MineZkStart()
 	} else {
 		log.Error("Cannot start mining without prometheus", "err", s.engine)
 	}
@@ -320,6 +325,9 @@ func (s *Hpb) StartMining(local bool) error {
 		atomic.StoreUint32(&s.protocolManager.acceptTxs, 1)
 	}
 	go s.miner.Start(eb)
+	if zkMiner != nil {
+		zkMiner.MinerRegister("http://" + s.config.NatAddr + ":" + strconv.Itoa(s.config.RPCPort))
+	}
 	return nil
 }
 
