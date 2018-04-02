@@ -140,6 +140,6 @@ func (ms *ManagedState) getAccount(addr common.Address) *account {
 }
 
 func newAccount(so *stateObject) *account {
-	log.Info("manager_s")
+	//log.Info("manager_s")
 	return &account{so, so.Nonce(), nil}
 }
