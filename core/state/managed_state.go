@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/hpb-project/ghpb/common"
-	"github.com/hpb-project/ghpb/common/log"
+	//"github.com/hpb-project/ghpb/common/log"
 )
 
 type account struct {
