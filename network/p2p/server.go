@@ -444,10 +444,10 @@ func (srv *Server) Start() (err error) {
 
 	for _, n := range srv.StaticNodes {
 		switch n.Role {
-		case discover.CommRole:
+		case discover.HpRole:
 			srv.nstaticCommit.Add(n)
 			log.Debug("Add one committee node to discover.","NodeID",n.ID,"IP",n.IP,"Port",n.TCP)
-		case discover.PreCommRole:
+		case discover.PreRole:
 			srv.nstaticPrecom.Add(n)
 			log.Debug("Add one pre-committee node to discover.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
 		default:

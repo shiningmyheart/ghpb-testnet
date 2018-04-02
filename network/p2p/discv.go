@@ -65,9 +65,9 @@ func (pt NodeType)ToDiscv() uint8 {
 	case NtPublic:
 		disc = discover.BootRole
 	case NtCommitt:
-		disc = discover.CommRole
+		disc = discover.HpRole
 	case NtPrecomm:
-		disc = discover.PreCommRole
+		disc = discover.PreRole
 	case NtAccess:
 		disc = discover.AccessRole
 	case NtLight:
@@ -81,9 +81,9 @@ func Uint8ToNodeType(discNt uint8) NodeType {
 	switch discNt {
 	case discover.BootRole:
 		return NtPublic
-	case discover.CommRole:
+	case discover.HpRole:
 		return NtCommitt
-	case discover.PreCommRole:
+	case discover.PreRole:
 		return NtPrecomm
 	case discover.AccessRole:
 		return NtAccess

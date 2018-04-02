@@ -43,8 +43,8 @@ const(
 	BootRole         = 1
 	LightRole        = 2
 	AccessRole       = 3
-	CommRole         = 4
-	PreCommRole      = 5
+	HpRole           = 4
+	PreRole          = 5
 )
 // Node represents a host on the network.
 // The fields of Node may not be modified.
@@ -52,7 +52,7 @@ type Node struct {
 	IP       net.IP // len 4 for IPv4 or 16 for IPv6
 	UDP, TCP uint16 // port numbers
 	ID       NodeID // the node's public key
-	Role     uint8   // role of node(UnKnowRole, LightRole, AccessRole, CommRole or PreCommRole)
+	Role     uint8   // role of node(UnKnowRole, LightRole, AccessRole, HpRole or PreRole)
 	// This is a cached copy of sha3(ID) which is used for node
 	// distance calculations. This is part of Node in order to make it
 	// possible to write tests that need a node at a certain distance.

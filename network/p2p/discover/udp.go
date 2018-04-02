@@ -308,12 +308,12 @@ func newUDP(priv *ecdsa.PrivateKey, ourRole uint8, c conn, natm nat.Interface, n
 		return ga, nil, err
 	}
 
-	comm, err := newCrowd(ci, CommRole)
+	comm, err := newCrowd(ci, HpRole)
 	ga.CommCrowd = comm
 	if err != nil {
 		return ga, nil, err
 	}
-	pre, err := newCrowd(ci, PreCommRole)
+	pre, err := newCrowd(ci, PreRole)
 	ga.PreCommCrowd = pre
 	if err != nil {
 		return ga, nil, err
@@ -721,8 +721,8 @@ func expired(ts uint64) bool {
 }
 
 func (req *findnode)sendNeibors(trans *udp, from *net.UDPAddr, table *Table, fromID NodeID, fromRole uint8, forRole uint8) error {
-	// TODO by xujl: because no CommRole and PreCommRole Table, so don't need confirm in tab.db
-	if fromRole != CommRole && fromRole != PreCommRole {
+	// TODO by xujl: because no HpRole and PreRole Table, so don't need confirm in tab.db
+	if fromRole != HpRole && fromRole != PreRole {
 		if table.db.node(fromID, nodeDBDiscoverRoot) == nil {
 			// No bond exists, we don't process the packet. This prevents
 			// an attack vector where the discovery protocol could be used
