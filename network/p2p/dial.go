@@ -403,12 +403,12 @@ func (t *dialTask) isAllowDial(srv *Server, remote NodeType) bool {
 
 	// todo hpb: all type of peers number control
 
-	if local == NtLight && remote == NtCommitt {
+	if local == NtLight && remote == NtHpnode {
 		log.Debug("Dial is not allowed", "LocalType",local.String(),"RemoteType",remote.String())
 		return false
 	}
 
-	if local == NtLight && remote == NtPrecomm {
+	if local == NtLight && remote == NtPrenode {
 		log.Debug("Dial is not allowed", "LocalType",local.String(),"RemoteType",remote.String())
 		return false
 	}
@@ -439,7 +439,7 @@ func (t *discoverTask) Do(srv *Server) {
 		results = append(results,srv.ntabLight.Lookup(target)...)
 		//t.results = srv.ntabLight.Lookup(target)
 		//t.results = append(t.results,srv.ntabAccess.Lookup(target)...)
-	}else if srv.local == NtCommitt || srv.local == NtPrecomm {
+	}else if srv.local == NtHpnode || srv.local == NtPrenode {
 		//t.results = srv.ntabAccess.Lookup(target)
 	}
 

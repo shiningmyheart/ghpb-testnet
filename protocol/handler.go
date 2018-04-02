@@ -636,7 +636,7 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 		// Send the block to a subset of our peers
 		transfer := peers[:int(math.Sqrt(float64(len(peers))))]
 		for _, peer := range transfer {
-			if peer.RemoteType() == p2p.NtCommitt || peer.RemoteType() == p2p.NtPrecomm {
+			if peer.RemoteType() == p2p.NtHpnode || peer.RemoteType() == p2p.NtPrenode {
 				peer.SendNewBlock(block, td)
 			}
 		}
@@ -657,7 +657,7 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 	// Otherwise if the block is indeed in out own chain, announce it
 	if pm.blockchain.HasBlock(hash, block.NumberU64()) {
 		for _, peer := range peers {
-			if peer.LocalType() == p2p.NtCommitt || peer.LocalType() == p2p.NtPrecomm {
+			if peer.LocalType() == p2p.NtHpnode || peer.LocalType() == p2p.NtPrenode {
 				peer.SendNewBlockHashes([]common.Hash{hash}, []uint64{block.NumberU64()})
 			}
 		}
@@ -682,7 +682,7 @@ func (pm *ProtocolManager) BroadcastTx(hash common.Hash, tx *types.Transaction) 
 	peers := pm.peers.PeersWithoutTx(hash)
 	//FIXME include this again: peers = peers[:int(math.Sqrt(float64(len(peers))))]
 	for _, peer := range peers {
-		if peer.RemoteType() == p2p.NtCommitt || peer.RemoteType() == p2p.NtPrecomm {
+		if peer.RemoteType() == p2p.NtHpnode || peer.RemoteType() == p2p.NtPrenode {
 			peer.SendTransactions(types.Transactions{tx})
 		}
 	}
