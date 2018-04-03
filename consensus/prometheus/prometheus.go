@@ -18,7 +18,7 @@ package prometheus
 import (
 	"bytes"
 	"errors"
-	"fmt"
+	//"fmt"
 	"math/big"
 	"math/rand"
 	"sync"
@@ -207,7 +207,7 @@ func (c *Prometheus) snapshot(chain consensus.ChainReader, number uint64, hash c
 			signers := make([]common.AddressHash, (len(genesis.ExtraHash)-extraVanity-extraSeal)/common.AddressHashLength)
 
 			for i := 0; i < len(signers); i++ {
-				fmt.Printf("%s", string(genesis.ExtraHash[extraVanity+i*common.AddressLength:]))
+				//fmt.Printf("%s", string(genesis.ExtraHash[extraVanity+i*common.AddressLength:]))
 				copy(signers[i][:], genesis.ExtraHash[extraVanity+i*common.AddressHashLength:extraVanity+(i+1)*common.AddressHashLength])
 			}
 
