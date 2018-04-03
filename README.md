@@ -11,11 +11,11 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 
 ## Building the source (requires a Go version 1.7 or later)
 
-###Clone source
+### Clone source
 ```
    git clone https://github.com/hpb-project/ghpb-testnet
 ```
-###Building ghpb
+### Building ghpb
 ```
    cd ghpb-testnet && make all && cd build/bin && ls -l 
 ```
