@@ -47,7 +47,7 @@ const (
 
 	// txChanSize is the size of channel listening to TxPreEvent.
 	// The number is referenced from the size of tx pool.
-	txChanSize = 4096
+	txChanSize = 100000 //for testnet
 )
 
 var (

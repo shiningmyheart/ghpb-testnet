@@ -37,8 +37,8 @@ var (
 )
 
 const (
-	maxKnownTxs      = 32768 // Maximum transactions hashes to keep in the known list (prevent DOS)
-	maxKnownBlocks   = 1024  // Maximum block hashes to keep in the known list (prevent DOS)
+	maxKnownTxs      = 1000000 // Maximum transactions hashes to keep in the known list (prevent DOS) //for testnet
+	maxKnownBlocks   = 100000  // Maximum block hashes to keep in the known list (prevent DOS)  //for testnet
 	handshakeTimeout = 5 * time.Second
 )
 

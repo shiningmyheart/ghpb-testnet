@@ -74,6 +74,11 @@ ghpb-linux-amd64:
 	@echo "Linux amd64 cross compilation done:"
 	@ls -ld $(GOBIN)/ghpb-linux-* | grep amd64
 
+bootnode-linux-amd64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./command/bootnode
+	@echo "Linux amd64 cross compilation done:"
+	@ls -ld $(GOBIN)/ghpb-linux-* | grep amd64
+
 ghpb-linux-arm: ghpb-linux-arm-5 ghpb-linux-arm-6 ghpb-linux-arm-7 ghpb-linux-arm64
 	@echo "Linux ARM cross compilation done:"
 	@ls -ld $(GOBIN)/ghpb-linux-* | grep arm
