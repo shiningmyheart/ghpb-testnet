@@ -292,11 +292,13 @@ func (s *Historysnap) apply(headers []*types.Header,chain consensus.ChainReader)
 		
 		// signerHash 是否在 recent中，说明已经签过名
 		// 防止连续放入
+		/*
 		for _, recent := range snap.Recents {
 			if recent == signerHash {
 				return nil, errUnauthorized
 			}
 		}
+		*/
 		// 根据块号放入
 		snap.Recents[number] = signerHash
 
