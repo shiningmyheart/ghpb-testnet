@@ -40,7 +40,7 @@ func (p *prometh) makeGenesis() {
 	// Construct a default genesis block
 	genesis := &core.Genesis{
 		Timestamp:  uint64(time.Now().Unix()),
-		GasLimit:   4700000,
+		GasLimit:   params.GenesisGasLimit.Uint64(),
 		Difficulty: big.NewInt(1048576),
 		Alloc:      make(core.GenesisAlloc),
 		Config: &params.ChainConfig{
