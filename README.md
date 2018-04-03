@@ -17,5 +17,5 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 ```
 ###Building ghpb
 ```
-   cd ghpb-testnet && make all && cd /build/bin && ls -l 
+   cd ghpb-testnet && make all && cd build/bin && ls -l 
 ```
