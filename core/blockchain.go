@@ -977,6 +977,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 			return i, events, coalescedLogs, err
 		}
 		// Write the block to the chain and get the status.
+		log.Info("----> Write Block and State From Outside", "number", block.Number(), "hash", block.Hash(),"difficulty",block.Difficulty())
 		status, err := bc.WriteBlockAndState(block, receipts, state)
 		if err != nil {
 			return i, events, coalescedLogs, err

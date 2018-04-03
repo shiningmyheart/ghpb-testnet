@@ -511,6 +511,7 @@ func (c *Prometheus) verifySeal(chain consensus.ChainReader, header *types.Heade
 		return errUnauthorized
 	}
 
+	/*
 	for seen, recent := range snap.Recents {
 		if recent == signerHash {
 			// Signer is among recents, only fail if the current block doesn't shift it out
@@ -519,6 +520,7 @@ func (c *Prometheus) verifySeal(chain consensus.ChainReader, header *types.Heade
 			}
 		}
 	}
+	*/
 	// Ensure that the difficulty corresponds to the turn-ness of the signerHash
 	inturn := snap.inturn(header.Number.Uint64(), signerHash)
 	if inturn && header.Difficulty.Cmp(diffInTurn) != 0 {
@@ -593,6 +595,7 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 
 	// If we're amongst the recent signers, wait for the next block
 	// 如果最近已经签名，则需要等待时序
+	/*
 	for seen, recent := range snap.Recents {
 		if recent == signerHash {
 			// 签名者在recents缓存中，等待被移除
@@ -602,7 +605,7 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 				return nil, nil
 			}
 		}
-	}
+	}*/
 	// Sweet, the protocol permits us to sign the block, wait for our time
 	// 轮到我们的签名
 	delay := time.Unix(header.Time.Int64(), 0).Sub(time.Now())
@@ -612,10 +615,10 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 		wiggle := time.Duration(len(snap.Signers)/2+1) * wiggleTime
 		delay += time.Duration(rand.Int63n(int64(wiggle)))
 
-		log.Trace("Out-of-turn signing requested", "wiggle", common.PrettyDuration(wiggle))
+		log.Info("Out-of-turn signing requested", "wiggle", common.PrettyDuration(wiggle))
 	}
 
-	log.Trace("Waiting for slot to sign and propagate", "delay", common.PrettyDuration(delay))
+	log.Info("Waiting for slot to sign and propagate", "delay", common.PrettyDuration(delay))
 
 	select {
 	case <-stop:
