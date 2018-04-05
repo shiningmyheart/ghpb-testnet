@@ -85,7 +85,7 @@ type Config struct {
 	Name string `toml:"-"`
 
 	// RoleType sets the node type of this server.
-	// One of committee, pre-committee, access, light.
+	// One of hpnode,prenode,access,light.
 	RoleType string
 
 	// BootstrapNodes are used to establish connectivity
@@ -159,8 +159,8 @@ type Server struct {
 
 	ntabLight      discoverTable
 	ntabAccess     discoverTable
-	nstaticCommit  discoverStatic
-	nstaticPrecom  discoverStatic
+	nstaticHpnode  discoverStatic
+	nstaticPrenode discoverStatic
 
 	listener     net.Listener
 	ourHandshake *protoHandshake
@@ -420,20 +420,10 @@ func (srv *Server) Start() (err error) {
 			return err
 		}
 
-		//if err := hpb_nt.CommSlice.SetFallbackNodes(srv.StaticNodes); err != nil {
-		//	log.Error("P2P server committee slice set fallback nodes error")
-		//	return err
-		//}
-
-		//if err := hpb_nt.PreCommSlice.SetFallbackNodes(srv.StaticNodes); err != nil {
-		//	log.Error("P2P server pre-committee slice  set fallback nodes error")
-		//	return err
-		//}
-
-		srv.ntabLight     = hpb_nt.LightTab
-		srv.ntabAccess    = hpb_nt.AccessTab
-		srv.nstaticCommit = hpb_nt.CommCrowd
-		srv.nstaticPrecom = hpb_nt.PreCommCrowd
+		srv.ntabLight      = hpb_nt.LightTab
+		srv.ntabAccess     = hpb_nt.AccessTab
+		srv.nstaticHpnode  = hpb_nt.CommCrowd
+		srv.nstaticPrenode = hpb_nt.PreCommCrowd
 	}
 
 
@@ -445,11 +435,11 @@ func (srv *Server) Start() (err error) {
 	for _, n := range srv.StaticNodes {
 		switch n.Role {
 		case discover.HpRole:
-			srv.nstaticCommit.Add(n)
-			log.Debug("Add one committee node to discover.","NodeID",n.ID,"IP",n.IP,"Port",n.TCP)
+			srv.nstaticHpnode.Add(n)
+			log.Debug("Add one hpnode node to discover.","NodeID",n.ID,"IP",n.IP,"Port",n.TCP)
 		case discover.PreRole:
-			srv.nstaticPrecom.Add(n)
-			log.Debug("Add one pre-committee node to discover.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
+			srv.nstaticPrenode.Add(n)
+			log.Debug("Add one prenode node to discover.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
 		default:
 			log.Debug("Type is not accept to add in static node.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
 		}
@@ -615,22 +605,10 @@ running:
 				}
 
 				name := truncateName(c.name)
-
-				// get remote node t
 				p.local  = srv.local
 				p.remote = srv.getRemoteNodeType(c.id)
 
-				if p.remote == NtUnknown{
-					log.Debug("Could not find remote node type","id",c.id, "name", name, "addr", c.fd.RemoteAddr())
-					continue
-				}
-
-				if !srv.addPeerChecks(p,c){
-					continue
-				}
-
 				log.Debug("Adding p2p peer", "id", c.id, "name", name, "addr", c.fd.RemoteAddr())
-
 				peers[c.id] = p
 				go srv.runPeer(p)
 			}
@@ -659,11 +637,11 @@ running:
 	if srv.ntabAccess != nil {
 		srv.ntabAccess.Close()
 	}
-	if srv.nstaticCommit != nil {
-		srv.nstaticCommit.Close()
+	if srv.nstaticHpnode != nil {
+		srv.nstaticHpnode.Close()
 	}
-	if srv.nstaticPrecom != nil {
-		srv.nstaticPrecom.Close()
+	if srv.nstaticPrenode != nil {
+		srv.nstaticPrenode.Close()
 	}
 
 
@@ -681,34 +659,12 @@ running:
 	}
 }
 
-
-func (srv *Server) addPeerChecks(p *Peer, c *conn) bool {
-
-	if p.local == NtLight && (p.remote == NtCommitt||p.remote == NtPrecomm){
-		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
-		return false
-	}
-
-	if p.local == NtCommitt && p.remote == NtLight{
-		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
-		return false
-	}
-
-	if p.local == NtPrecomm && p.remote == NtLight{
-		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
-		return false
-	}
-
-	//log.Info("Adding p2p peer", "id", c.id, "localRole",p.local,"remoteRole",p.remote)
-	return true
-}
-
 func (srv *Server) getRemoteNodeType(rid discover.NodeID) NodeType {
 
 	local  := srv.local
 	remote := NtUnknown
 
-	if local == NtCommitt || local ==  NtPrecomm{
+	if local == NtHpnode || local ==  NtPrenode{
 		for _, n := range srv.StaticNodes {
 			if rid== n.ID{
 				remote = Uint8ToNodeType(n.Role)
@@ -767,6 +723,28 @@ func (srv *Server) protoHandshakeChecks(peers map[discover.NodeID]*Peer, c *conn
 	if len(srv.Protocols) > 0 && countMatchingProtocols(srv.Protocols, c.caps) == 0 {
 		return DiscUselessPeer
 	}
+
+	remote := srv.getRemoteNodeType(c.id)
+	if remote == NtUnknown {
+		return DiscUnknownNode
+	}
+
+	local := srv.local
+	if local == NtLight && (remote == NtHpnode||remote == NtPrenode){
+		log.Debug("Node Type check to add peer failed","local",local,"remote",remote)
+		return DiscUnexpectedConnected
+	}
+
+	if local == NtHpnode && remote == NtLight{
+		log.Debug("Node Type check to add peer failed","local",local,"remote",remote)
+		return DiscUnexpectedConnected
+	}
+
+	if local == NtPrenode && remote == NtLight{
+		log.Debug("Node Type check to add peer failed","local",local,"remote",remote)
+		return DiscUnexpectedConnected
+	}
+
 	// Repeat the encryption handshake checks because the
 	// peer set might have changed between the handshakes.
 	return srv.encHandshakeChecks(peers, c)

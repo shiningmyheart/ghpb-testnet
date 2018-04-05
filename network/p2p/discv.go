@@ -28,8 +28,8 @@ type NodeType uint8
 const(
 	NtUnknown  NodeType = 0x00
 	NtPublic   NodeType = 0x10
-	NtCommitt  NodeType = 0x20
-	NtPrecomm  NodeType = 0x30
+	NtHpnode   NodeType = 0x20
+	NtPrenode  NodeType = 0x30
 	NtAccess   NodeType = 0x40
 	NtLight    NodeType = 0x50
 )
@@ -37,19 +37,19 @@ const(
 func (pt NodeType)String() string {
 	switch pt {
 	case NtUnknown:
-		return "unknown-node"
+		return "Unknownnode"
 	case NtPublic:
-		return "public-node"
-	case NtCommitt:
-		return "committee-node"
-	case NtPrecomm:
-		return "pre-committee-node"
+		return "Bootnode"
+	case NtHpnode:
+		return "HPnode"
+	case NtPrenode:
+		return "Prenode"
 	case NtAccess:
-		return "access-node"
+		return "Accessnode"
 	case NtLight:
-		return "light-node"
+		return "Lightnode"
 	}
-	return "unknown-node"
+	return "Unknownnode"
 }
 
 func (pt NodeType)Uint8() uint8 {
@@ -64,9 +64,9 @@ func (pt NodeType)ToDiscv() uint8 {
 		disc = discover.UnKnowRole
 	case NtPublic:
 		disc = discover.BootRole
-	case NtCommitt:
+	case NtHpnode:
 		disc = discover.HpRole
-	case NtPrecomm:
+	case NtPrenode:
 		disc = discover.PreRole
 	case NtAccess:
 		disc = discover.AccessRole
@@ -82,9 +82,9 @@ func Uint8ToNodeType(discNt uint8) NodeType {
 	case discover.BootRole:
 		return NtPublic
 	case discover.HpRole:
-		return NtCommitt
+		return NtHpnode
 	case discover.PreRole:
-		return NtPrecomm
+		return NtPrenode
 	case discover.AccessRole:
 		return NtAccess
 	case discover.LightRole:
@@ -99,10 +99,10 @@ func StrToNodeType(role string) NodeType {
 	switch {
 	case role == "public":
 		return NtPublic
-	case role == "committee":
-		return NtCommitt
-	case role == "pre-committee":
-		return NtPrecomm
+	case role == "hpnode":
+		return NtHpnode
+	case role == "prenode":
+		return NtPrenode
 	case role == "access":
 		return NtAccess
 	case role == "light":

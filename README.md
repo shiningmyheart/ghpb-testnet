@@ -11,34 +11,11 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 
 ## Building the source (requires a Go version 1.7 or later)
 
-###Clone source
+### Clone source
 ```
-    git clone git@github.com:hpb-project/ghpb-testnet.git $GOPATH/src/github.com/hpb-project/ghpb
+   git clone https://github.com/hpb-project/ghpb-testnet
 ```
-
-###Building ghpb
+### Building ghpb
 ```
-    go install -a -v ./command/ghpb
-```
-or
-```
-    cd $GOPATH/src/github.com/hpb-project/ghpb
-    make ghpb
-```
-
-###Building promfile
-
-## Init with genesis file
-```
-$ geth --datadir <some/location/where/to/create/chain> init genesis.json
-```
-
-## Running ghpb
-```
-$ ghpb --identity "private hpb"  --rpcaddr 127.0.0.1  --rpc   --rpcport 8545  --maxpeers 2  --networkid 100  --datadir "./chain"  --nodiscover
-```
-
-## Attach to the node
-```
-ghpb attach ipc://path-to-chain-directory/ghpb.ipc
+   cd ghpb-testnet && make all && cd build/bin && ls -l 
 ```
