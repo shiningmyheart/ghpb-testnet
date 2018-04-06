@@ -2711,7 +2711,7 @@ AllSolidityEvents.prototype.execute = function (options, callback) {
 
     var o = this.encode(options);
     var formatter = this.decode.bind(this);
-    return new Filter(o, 'eth', this._requestManager, watches.hpb(), formatter, callback);
+    return new Filter(o, 'hpb', this._requestManager, watches.hpb(), formatter, callback);
 };
 
 AllSolidityEvents.prototype.attachToContract = function (contract) {
@@ -3336,7 +3336,7 @@ SolidityEvent.prototype.execute = function (indexed, options, callback) {
 
     var o = this.encode(indexed, options);
     var formatter = this.decode.bind(this);
-    return new Filter(o, 'eth', this._requestManager, watches.hpb(), formatter, callback);
+    return new Filter(o, 'hpb', this._requestManager, watches.hpb(), formatter, callback);
 };
 
 /**
@@ -3470,7 +3470,7 @@ var getOptions = function (options, type) {
 
 
     switch(type) {
-        case 'eth':
+        case 'hpb':
 
             // make sure topics, get converted to hex
             options.topics = options.topics || [];
@@ -4535,7 +4535,7 @@ Iban.fromBban = function (bban) {
  * @return {Iban} the IBAN object
  */
 Iban.createIndirect = function (options) {
-    return Iban.fromBban('ETH' + options.institution + options.identifier);
+    return Iban.fromBban('HPB' + options.institution + options.identifier);
 };
 
 /**
@@ -5430,6 +5430,46 @@ var methods = function () {
         call: 'hpb_getWork',
         params: 0
     });
+    var newFilterCall = function (args) {
+        var type = args[0];
+
+        switch(type) {
+            case 'latest':
+                args.shift();
+                this.params = 0;
+                return 'hpb_newBlockFilter';
+            case 'pending':
+                args.shift();
+                this.params = 0;
+                return 'hpb_newPendingTransactionFilter';
+            default:
+                return 'hpb_newFilter';
+        }
+    };
+
+    var newFilter = new Method({
+        name: 'newFilter',
+        call: newFilterCall,
+        params: 1
+    });
+
+    var uninstallFilter = new Method({
+        name: 'uninstallFilter',
+        call: 'hpb_uninstallFilter',
+        params: 1
+    });
+
+    var getFilterLogs = new Method({
+        name: 'getFilterLogs',
+        call: 'hpb_getFilterLogs',
+        params: 1
+    });
+
+    var getFilterChanges = new Method({
+        name: 'getFilterChanges',
+        call: 'hpb_getFilterChanges',
+        params: 1
+    });
 
     return [
         getBalance,
@@ -5454,7 +5494,11 @@ var methods = function () {
         compileLLL,
         compileSerpent,
         submitWork,
-        getWork
+        getWork,
+        newFilter,
+        uninstallFilter,
+        getFilterLogs,
+        getFilterChanges
     ];
 };
 
@@ -5501,7 +5545,7 @@ Hpb.prototype.contract = function (abi) {
 };
 
 Hpb.prototype.filter = function (options, callback, filterCreationErrorCallback) {
-    return new Filter(options, 'eth', this._requestManager, watches.hpb(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
+    return new Filter(options, 'hpb', this._requestManager, watches.hpb(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
 };
 
 Hpb.prototype.namereg = function () {
@@ -5995,7 +6039,7 @@ module.exports = Swarm;
 var Method = require('../method');
 
 /// @returns an array of objects describing web3.hpb.filter api methods
-var hpb = function () {
+var hpb = function (web3) {
     var newFilterCall = function (args) {
         var type = args[0];
 
@@ -6046,7 +6090,7 @@ var hpb = function () {
 };
 
 /// @returns an array of objects describing web3.shh.watch api methods
-var shh = function () {
+var shh = function (web3) {
 
     return [
         new Method({
