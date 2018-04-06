@@ -605,22 +605,10 @@ running:
 				}
 
 				name := truncateName(c.name)
-
-				// get remote node t
 				p.local  = srv.local
 				p.remote = srv.getRemoteNodeType(c.id)
 
-				if p.remote == NtUnknown{
-					log.Debug("Could not find remote node type","id",c.id, "name", name, "addr", c.fd.RemoteAddr())
-					continue
-				}
-
-				if !srv.addPeerChecks(p,c){
-					continue
-				}
-
 				log.Debug("Adding p2p peer", "id", c.id, "name", name, "addr", c.fd.RemoteAddr())
-
 				peers[c.id] = p
 				go srv.runPeer(p)
 			}
@@ -669,28 +657,6 @@ running:
 		p.log.Debug("<-delpeer (spindown)", "remainingTasks", len(runningTasks))
 		delete(peers, p.ID())
 	}
-}
-
-
-func (srv *Server) addPeerChecks(p *Peer, c *conn) bool {
-
-	if p.local == NtLight && (p.remote == NtHpnode||p.remote == NtPrenode){
-		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
-		return false
-	}
-
-	if p.local == NtHpnode && p.remote == NtLight{
-		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
-		return false
-	}
-
-	if p.local == NtPrenode && p.remote == NtLight{
-		log.Debug("Node Type check to add peer failed","local",p.local,"remote",p.remote)
-		return false
-	}
-
-	//log.Info("Adding p2p peer", "id", c.id, "localRole",p.local,"remoteRole",p.remote)
-	return true
 }
 
 func (srv *Server) getRemoteNodeType(rid discover.NodeID) NodeType {
@@ -757,6 +723,28 @@ func (srv *Server) protoHandshakeChecks(peers map[discover.NodeID]*Peer, c *conn
 	if len(srv.Protocols) > 0 && countMatchingProtocols(srv.Protocols, c.caps) == 0 {
 		return DiscUselessPeer
 	}
+
+	remote := srv.getRemoteNodeType(c.id)
+	if remote == NtUnknown {
+		return DiscUnknownNode
+	}
+
+	local := srv.local
+	if local == NtLight && (remote == NtHpnode||remote == NtPrenode){
+		log.Debug("Node Type check to add peer failed","local",local,"remote",remote)
+		return DiscUnexpectedConnected
+	}
+
+	if local == NtHpnode && remote == NtLight{
+		log.Debug("Node Type check to add peer failed","local",local,"remote",remote)
+		return DiscUnexpectedConnected
+	}
+
+	if local == NtPrenode && remote == NtLight{
+		log.Debug("Node Type check to add peer failed","local",local,"remote",remote)
+		return DiscUnexpectedConnected
+	}
+
 	// Repeat the encryption handshake checks because the
 	// peer set might have changed between the handshakes.
 	return srv.encHandshakeChecks(peers, c)
