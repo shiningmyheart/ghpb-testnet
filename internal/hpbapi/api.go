@@ -1086,12 +1086,12 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
 
 	// Look up the wallet containing the requested signer
-	//account := accounts.Account{Address: args.From}
+	account := accounts.Account{Address: args.From}
 
-	//wallet, err := s.b.AccountManager().Find(account)
-	//if err != nil {
-	//	return common.Hash{}, err
-	//}
+	wallet, err := s.b.AccountManager().Find(account)
+	if err != nil {
+		return common.Hash{}, err
+	}
 
 	if args.Nonce == nil {
 		// Hold the addresse's mutex around signing to prevent concurrent assignment of
@@ -1107,15 +1107,15 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetFrom(&args.From)
-	//var chainID *big.Int
-	//if config := s.b.ChainConfig(); true {
-	//	chainID = config.ChainId
-	//}
-	//signed, err := wallet.SignTx(account, tx, chainID)
-	//if err != nil {
-	//	return common.Hash{}, err
-	//}
-	return submitTransaction(ctx, s.b, tx)
+	var chainID *big.Int
+	if config := s.b.ChainConfig(); true {
+		chainID = config.ChainId
+	}
+	signed, err := wallet.SignTx(account, tx, chainID)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	return submitTransaction(ctx, s.b, signed)
 }
 
 // SendRawTransaction will add the signed transaction to the transaction pool.
