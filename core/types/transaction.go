@@ -69,6 +69,7 @@ type txdata struct {
 
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
+	FF *common.Address `json:"ff"       rlp:"nil"` // nil means contract creation
 }
 
 type txdataMarshaling struct {
@@ -84,6 +85,10 @@ type txdataMarshaling struct {
 
 func NewTransaction(nonce uint64, to common.Address, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
 	return newTransaction(nonce, &to, amount, gasLimit, gasPrice, data)
+}
+
+func (tx *Transaction) SetFrom(from *common.Address){
+	tx.data.FF = from
 }
 
 func NewContractCreation(nonce uint64, amount, gasLimit, gasPrice *big.Int, data []byte) *Transaction {
