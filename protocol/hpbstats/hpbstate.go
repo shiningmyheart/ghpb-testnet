@@ -51,7 +51,7 @@ const (
 
 	// txChanSize is the size of channel listening to TxPreEvent.
 	// The number is referenced from the size of tx pool.
-	txChanSize = 4096
+	txChanSize = 100000
 	// chainHeadChanSize is the size of channel listening to ChainHeadEvent.
 	chainHeadChanSize = 10
 )
@@ -120,7 +120,7 @@ func (s *Service) APIs() []rpc.API { return nil }
 // Start implements node.Service, starting up the monitoring and reporting daemon.
 func (s *Service) Start(server *p2p.Server) error {
 	s.server = server
-	go s.loop()
+	//go s.loop()
 
 	log.Info("Stats daemon started")
 	return nil

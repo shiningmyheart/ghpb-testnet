@@ -44,7 +44,7 @@ import (
 	"github.com/hpb-project/ghpb/network/rpc"
 	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/protocol/downloader"
-	"github.com/hpb-project/ghpb/protocol/filters"
+	//"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/protocol/miner"
 	"github.com/hpb-project/ghpb/storage"
@@ -240,12 +240,14 @@ func (s *Hpb) APIs() []rpc.API {
 			Version:   "1.0",
 			Service:   NewPrivateMinerAPI(s),
 			Public:    false,
-		}, {
-			Namespace: "hpb",
-			Version:   "1.0",
-			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
-			Public:    true,
-		}, {
+		},
+		//{
+		//	Namespace: "hpb",
+		//	Version:   "1.0",
+		//	Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
+		//	Public:    true,
+		//},
+		{
 			Namespace: "admin",
 			Version:   "1.0",
 			Service:   NewPrivateAdminAPI(s),

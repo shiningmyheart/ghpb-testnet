@@ -37,7 +37,7 @@ import (
 	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/protocol"
 	"github.com/hpb-project/ghpb/protocol/downloader"
-	"github.com/hpb-project/ghpb/protocol/filters"
+	//"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/protocol/light"
 	"github.com/hpb-project/ghpb/storage"
@@ -161,12 +161,14 @@ func (s *LightHpb) APIs() []rpc.API {
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
 			Public:    true,
-		}, {
-			Namespace: "hpb",
-			Version:   "1.0",
-			Service:   filters.NewPublicFilterAPI(s.ApiBackend, true),
-			Public:    true,
-		}, {
+		},
+		//{
+		//	Namespace: "hpb",
+		//	Version:   "1.0",
+		//	Service:   filters.NewPublicFilterAPI(s.ApiBackend, true),
+		//	Public:    true,
+		//},
+		{
 			Namespace: "net",
 			Version:   "1.0",
 			Service:   s.netRPCService,

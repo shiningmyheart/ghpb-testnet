@@ -27,6 +27,7 @@ import (
 
 	"github.com/hpb-project/ghpb/common/log"
 	"gopkg.in/fatih/set.v0"
+	"github.com/hpb-project/ghpb/metrics"
 )
 
 const MetadataApi = "rpc"
@@ -42,6 +43,9 @@ const (
 	OptionSubscriptions = 1 << iota // support pub sub
 )
 
+var (
+	requestCounter   = metrics.NewCounter("rpc/request/count")
+)
 // NewServer will create a new server instance with no registered handlers.
 func NewServer() *Server {
 	server := &Server{
@@ -160,7 +164,7 @@ func (s *Server) serveRequest(codec ServerCodec, singleShot bool, options CodecO
 	// test if the server is ordered to stop
 	for atomic.LoadInt32(&s.run) == 1 {
 		reqs, batch, err := s.readRequest(codec)
-
+		requestCounter.Inc(int64(len(reqs)))
 		if err != nil {
 			// If a parsing error occurred, send an error
 			if err.Error() != "EOF" {
@@ -224,7 +228,6 @@ func (s *Server) ServeCodec(codec ServerCodec, options CodecOption) {
 // close the codec unless a non-recoverable error has occurred. Note, this method will return after
 // a single request has been processed!
 func (s *Server) ServeSingleRequest(codec ServerCodec, options CodecOption) {
-	log.Info("ServeSingleRequest")
 	s.serveRequest(codec, true, options)
 }
 

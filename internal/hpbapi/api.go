@@ -1088,7 +1088,7 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
 
-	wallet, err := s.b.AccountManager().Find(account)
+	_, err := s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -1107,15 +1107,15 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetFrom(&args.From)
-	var chainID *big.Int
-	if config := s.b.ChainConfig(); true {
-		chainID = config.ChainId
-	}
-	signed, err := wallet.SignTx(account, tx, chainID)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	return submitTransaction(ctx, s.b, signed)
+	//var chainID *big.Int
+	//if config := s.b.ChainConfig(); true {
+	//	chainID = config.ChainId
+	//}
+	//signed, err := wallet.SignTx(account, tx, chainID)
+	//if err != nil {
+	//	return common.Hash{}, err
+	//}
+	return submitTransaction(ctx, s.b, tx)
 }
 
 // SendRawTransaction will add the signed transaction to the transaction pool.

@@ -101,6 +101,8 @@ var (
 	// General tx metrics
 	invalidTxCounter     = metrics.NewCounter("txpool/invalid")
 	underpricedTxCounter = metrics.NewCounter("txpool/underpriced")
+	feedRoutineCounter   = metrics.NewCounter("txpool/feed/routine")
+	promoteDropCounter   = metrics.NewCounter("txpool/promote/drop")
 )
 
 // blockChain provides the state of blockchain and current gas limit to do
@@ -133,7 +135,8 @@ type TxPoolConfig struct {
 // DefaultTxPoolConfig contains the default configurations for the transaction
 // pool.
 var DefaultTxPoolConfig = TxPoolConfig{
-	Journal:   "transactions.rlp",
+	//Journal:   "transactions.rlp",
+	Journal:   "",
 	Rejournal: time.Hour,
 
 	PriceLimit: 1,
@@ -200,7 +203,10 @@ type TxPool struct {
 
 	wg sync.WaitGroup // for shutdown sync
 
+	broadcastTxCh chan <- TxPreEvent
+	sendTimer *time.Timer
 }
+
 
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
 // trnsactions from the network.
@@ -221,6 +227,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		chainHeadCh: make(chan ChainHeadEvent, chainHeadChanSize),
 		gasPrice:    new(big.Int).SetUint64(config.PriceLimit),
 	}
+	pool.sendTimer   = time.NewTimer(time.Millisecond * 10)
 	pool.locals = newAccountSet(pool.signer)
 	pool.priced = newTxPricedList(&pool.all)
 	pool.reset(nil, chain.CurrentBlock().Header())
@@ -279,11 +286,11 @@ func (pool *TxPool) loop() {
 
 				pool.mu.Unlock()
 			}
-		// Be unsubscribed due to system stopped
+			// Be unsubscribed due to system stopped
 		case <-pool.chainHeadSub.Err():
 			return
 
-		// Handle stats reporting ticks
+			// Handle stats reporting ticks
 		case <-report.C:
 			pool.mu.RLock()
 			pending, queued := pool.stats()
@@ -295,7 +302,7 @@ func (pool *TxPool) loop() {
 				prevPending, prevQueued, prevStales = pending, queued, stales
 			}
 
-		// Handle inactive account transaction eviction
+			// Handle inactive account transaction eviction
 		case <-evict.C:
 			pool.mu.Lock()
 			for addr := range pool.queue {
@@ -312,7 +319,7 @@ func (pool *TxPool) loop() {
 			}
 			pool.mu.Unlock()
 
-		// Handle local transaction journal rotation
+			// Handle local transaction journal rotation
 		case <-journal.C:
 			if pool.journal != nil {
 				pool.mu.Lock()
@@ -683,12 +690,12 @@ func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, er
 // deemed to have been sent from a local account.
 func (pool *TxPool) journalTx(from common.Address, tx *types.Transaction) {
 	// Only journal if it's enabled and the transaction is local
-	if pool.journal == nil || !pool.locals.contains(from) {
+	/*if pool.journal == nil || !pool.locals.contains(from) {
 		return
 	}
 	if err := pool.journal.insert(tx); err != nil {
 		log.Warn("Failed to journal local transaction", "err", err)
-	}
+	}*/
 }
 
 // promoteTx adds a transaction to the pending (processable) list of transactions.
@@ -725,7 +732,26 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 	// Set the potentially new pending nonce and notify any subsystems of the new tx
 	pool.beats[addr] = time.Now()
 	pool.pendingState.SetNonce(addr, tx.Nonce()+1)
-	go pool.txFeed.Send(TxPreEvent{tx})
+	pool.broadcastTxCh <- TxPreEvent{tx}
+	//pool.sendTimer.Reset(time.Millisecond * 10)
+	//select {
+	//case pool.broadcastTxCh <- TxPreEvent{tx}:
+	//case <-pool.sendTimer.C:
+	//	log.Info("Write to broadcast channel block over 10ms, drop tx")
+	//	pool.removeTx(tx.Hash())
+	//	promoteDropCounter.Inc(1)
+	//	return
+	//}
+	go func() {
+		feedRoutineCounter.Inc(1)
+		pool.txFeed.Send(TxPreEvent{tx})
+		feedRoutineCounter.Dec(1)
+	}()
+
+}
+
+func (pool *TxPool) RegisterTxBroadcastChan(ch chan <- TxPreEvent)  {
+	pool.broadcastTxCh = ch
 }
 
 // AddLocal enqueues a single transaction into the pool if it is valid, marking
