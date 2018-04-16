@@ -110,7 +110,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Hpb, error) {
 	if err != nil {
 		return nil, err
 	}
-	stopDbUpgrade := upgradeDeduplicateData(chainDb)
+	//stopDbUpgrade := upgradeDeduplicateData(chainDb)
 	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
@@ -125,7 +125,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Hpb, error) {
 		accountManager: ctx.AccountManager,
 		engine:         CreateConsensusEngine(ctx, config, chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
-		stopDbUpgrade:  stopDbUpgrade,
+		//stopDbUpgrade:  stopDbUpgrade,
 		networkId:      config.NetworkId,
 		gasPrice:       config.GasPrice,
 		hpberbase:      config.Hpberbase,
@@ -377,9 +377,9 @@ func (s *Hpb) Start(srvr *p2p.Server) error {
 // Stop implements node.Service, terminating all internal goroutines used by the
 // Hpb protocol.
 func (s *Hpb) Stop() error {
-	if s.stopDbUpgrade != nil {
-		s.stopDbUpgrade()
-	}
+	//if s.stopDbUpgrade != nil {
+	//	s.stopDbUpgrade()
+	//}
 	s.bloomIndexer.Close()
 	s.blockchain.Stop()
 	s.protocolManager.Stop()

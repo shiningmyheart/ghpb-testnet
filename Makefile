@@ -70,7 +70,7 @@ ghpb-linux-386:
 	@ls -ld $(GOBIN)/ghpb-linux-* | grep 386
 
 ghpb-linux-amd64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./command/ghpb
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --deps=https://github.com/google/leveldb/archive/v1.19.tar.gz --targets=linux/amd64 -v ./command/ghpb
 	@echo "Linux amd64 cross compilation done:"
 	@ls -ld $(GOBIN)/ghpb-linux-* | grep amd64
 

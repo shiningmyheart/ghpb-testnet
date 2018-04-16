@@ -24,20 +24,21 @@ import (
 
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/metrics"
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/errors"
-	"github.com/syndtr/goleveldb/leveldb/filter"
-	"github.com/syndtr/goleveldb/leveldb/iterator"
-	"github.com/syndtr/goleveldb/leveldb/opt"
-
 	gometrics "github.com/rcrowley/go-metrics"
+	"github.com/jmhodges/levigo"
 )
 
 var OpenFileLimit = 64
 
+type CLevelDB struct {
+	db     *levigo.DB
+	ro     *levigo.ReadOptions
+	wo     *levigo.WriteOptions
+	woSync *levigo.WriteOptions
+}
 type LDBDatabase struct {
 	fn string      // filename for reporting
-	db *leveldb.DB // LevelDB instance
+	db *CLevelDB // LevelDB instance
 
 	getTimer       gometrics.Timer // Timer for measuring the database get request counts and latencies
 	putTimer       gometrics.Timer // Timer for measuring the database put request counts and latencies
@@ -59,32 +60,29 @@ type LDBDatabase struct {
 func NewLDBDatabase(file string, cache int, handles int) (*LDBDatabase, error) {
 	logger := log.New("database", file)
 
-	// Ensure we have some minimal caching and file guarantees
-	if cache < 16 {
-		cache = 16
-	}
-	if handles < 16 {
-		handles = 16
-	}
-	logger.Info("Allocated cache and file handles", "cache", cache, "handles", handles)
-
-	// Open the db and recover any potential corruptions
-	db, err := leveldb.OpenFile(file, &opt.Options{
-		OpenFilesCacheCapacity: handles,
-		BlockCacheCapacity:     cache / 2 * opt.MiB,
-		WriteBuffer:            cache / 4 * opt.MiB, // Two of these are used internally
-		Filter:                 filter.NewBloomFilter(10),
-	})
-	if _, corrupted := err.(*errors.ErrCorrupted); corrupted {
-		db, err = leveldb.RecoverFile(file, nil)
-	}
-	// (Re)check for errors and abort if opening of the db failed
+	opts := levigo.NewOptions()
+	opts.SetCache(levigo.NewLRUCache(1 << 30))
+	opts.SetCreateIfMissing(true)
+	policy := levigo.NewBloomFilter(10)
+	opts.SetFilterPolicy(policy)
+	db, err := levigo.Open(file, opts)
 	if err != nil {
 		return nil, err
 	}
+	ro := levigo.NewReadOptions()
+	wo := levigo.NewWriteOptions()
+	woSync := levigo.NewWriteOptions()
+	woSync.SetSync(true)
+	database := &CLevelDB{
+		db:     db,
+		ro:     ro,
+		wo:     wo,
+		woSync: woSync,
+	}
+
 	return &LDBDatabase{
 		fn:  file,
-		db:  db,
+		db:  database,
 		log: logger,
 	}, nil
 }
@@ -106,11 +104,14 @@ func (db *LDBDatabase) Put(key []byte, value []byte) error {
 	if db.writeMeter != nil {
 		db.writeMeter.Mark(int64(len(value)))
 	}
-	return db.db.Put(key, value, nil)
+	key = nonNilBytes(key)
+	value = nonNilBytes(value)
+	return db.db.db.Put(db.db.wo, key, value)
 }
 
 func (db *LDBDatabase) Has(key []byte) (bool, error) {
-	return db.db.Has(key, nil)
+	 dat,err := db.Get(key)
+	 return dat!=nil,err
 }
 
 // Get returns the given key if it's present.
@@ -120,7 +121,7 @@ func (db *LDBDatabase) Get(key []byte) ([]byte, error) {
 		defer db.getTimer.UpdateSince(time.Now())
 	}
 	// Retrieve the key and increment the miss counter if not found
-	dat, err := db.db.Get(key, nil)
+	dat, err := db.db.db.Get(db.db.ro, key)
 	if err != nil {
 		if db.missMeter != nil {
 			db.missMeter.Mark(1)
@@ -142,11 +143,12 @@ func (db *LDBDatabase) Delete(key []byte) error {
 		defer db.delTimer.UpdateSince(time.Now())
 	}
 	// Execute the actual operation
-	return db.db.Delete(key, nil)
+	key = nonNilBytes(key)
+	return db.db.db.Delete(db.db.wo, key)
 }
 
-func (db *LDBDatabase) NewIterator() iterator.Iterator {
-	return db.db.NewIterator(nil, nil)
+func (db *LDBDatabase) NewIterator() *levigo.Iterator {
+	return db.db.db.NewIterator(db.db.ro)
 }
 
 func (db *LDBDatabase) Close() {
@@ -161,16 +163,11 @@ func (db *LDBDatabase) Close() {
 			db.log.Error("Metrics collection failed", "err", err)
 		}
 	}
-	err := db.db.Close()
-	if err == nil {
-		db.log.Info("Database closed")
-	} else {
-		db.log.Error("Failed to close database", "err", err)
-	}
+	db.db.db.Close()
 }
 
-func (db *LDBDatabase) LDB() *leveldb.DB {
-	return db.db
+func (db *LDBDatabase) LDB() *levigo.DB {
+	return db.db.db
 }
 
 // Meter configures the database metrics collectors and
@@ -218,11 +215,11 @@ func (db *LDBDatabase) meter(refresh time.Duration) {
 	// Iterate ad infinitum and collect the stats
 	for i := 1; ; i++ {
 		// Retrieve the database stats
-		stats, err := db.db.GetProperty("leveldb.stats")
-		if err != nil {
-			db.log.Error("Failed to read database stats", "err", err)
-			return
-		}
+		stats := db.db.db.PropertyValue("leveldb.stats")
+		//if err != nil {
+		//	db.log.Error("Failed to read database stats", "err", err)
+		//	return
+		//}
 		// Find the compaction table, skip the header
 		lines := strings.Split(stats, "\n")
 		for len(lines) > 0 && strings.TrimSpace(lines[0]) != "Compactions" {
@@ -276,12 +273,12 @@ func (db *LDBDatabase) meter(refresh time.Duration) {
 }
 
 func (db *LDBDatabase) NewBatch() Batch {
-	return &ldbBatch{db: db.db, b: new(leveldb.Batch)}
+	return &ldbBatch{db: db.db, b: levigo.NewWriteBatch()}
 }
 
 type ldbBatch struct {
-	db   *leveldb.DB
-	b    *leveldb.Batch
+	db   *CLevelDB
+	b    *levigo.WriteBatch
 	size int
 }
 
@@ -292,7 +289,7 @@ func (b *ldbBatch) Put(key, value []byte) error {
 }
 
 func (b *ldbBatch) Write() error {
-	return b.db.Write(b.b, nil)
+	return b.db.db.Write(b.db.wo,b.b)
 }
 
 func (b *ldbBatch) ValueSize() int {
@@ -357,4 +354,11 @@ func (tb *tableBatch) Write() error {
 
 func (tb *tableBatch) ValueSize() int {
 	return tb.batch.ValueSize()
+}
+func nonNilBytes(bz []byte) []byte {
+	if bz == nil {
+		return []byte{}
+	} else {
+		return bz
+	}
 }
