@@ -30,7 +30,12 @@ import (
 	"github.com/hpb-project/ghpb/common/crypto"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/common/rlp"
-	"github.com/jmhodges/levigo"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/iterator"
+	"github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb/storage"
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 var (
@@ -41,7 +46,7 @@ var (
 
 // nodeDB stores all nodes we know about.
 type nodeDB struct {
-	lvl    *LevelDB   // Interface to the database itself
+	lvl    *leveldb.DB   // Interface to the database itself
 	self   NodeID        // Own node id to prevent adding it into the database
 	runner sync.Once     // Ensures we can start at most one expirer
 	quit   chan struct{} // Channel to signal the expiring thread to stop
@@ -67,52 +72,52 @@ var (
 // known peers in the network. If no path is given, an in-memory, temporary
 // database is constructed.
 func newNodeDB(path string, version int, self NodeID) (*nodeDB, error) {
+	if path == "" {
+		return newMemoryNodeDB(self)
+	}
 	return newPersistentNodeDB(path, version, self)
 }
 
-type LevelDB struct {
-	db     *levigo.DB
-	ro     *levigo.ReadOptions
-	wo     *levigo.WriteOptions
-	woSync *levigo.WriteOptions
+// newMemoryNodeDB creates a new in-memory node database without a persistent
+// backend.
+func newMemoryNodeDB(self NodeID) (*nodeDB, error) {
+	db, err := leveldb.Open(storage.NewMemStorage(), nil)
+	if err != nil {
+		return nil, err
+	}
+	return &nodeDB{
+		lvl:  db,
+		self: self,
+		quit: make(chan struct{}),
+	}, nil
 }
 
 // newPersistentNodeDB creates/opens a leveldb backed persistent node database,
 // also flushing its contents in case of a version mismatch.
 func newPersistentNodeDB(path string, version int, self NodeID) (*nodeDB, error) {
-	log.Info("UDP newPersistentNodeDB ","path",path)
-	opts := levigo.NewOptions()
-	opts.SetCache(levigo.NewLRUCache(1 << 30))
-	opts.SetCreateIfMissing(true)
-	policy := levigo.NewBloomFilter(10)
-	opts.SetFilterPolicy(policy)
-	db, err := levigo.Open(path, opts)
+	opts := &opt.Options{OpenFilesCacheCapacity: 5}
+	db, err := leveldb.OpenFile(path, opts)
+	if _, iscorrupted := err.(*errors.ErrCorrupted); iscorrupted {
+		db, err = leveldb.RecoverFile(path, nil)
+	}
 	if err != nil {
 		return nil, err
-	}
-	ro := levigo.NewReadOptions()
-	wo := levigo.NewWriteOptions()
-	woSync := levigo.NewWriteOptions()
-	woSync.SetSync(true)
-	ldb := &LevelDB{
-		db:     db,
-		ro:     ro,
-		wo:     wo,
-		woSync: woSync,
 	}
 	// The nodes contained in the cache correspond to a certain protocol version.
 	// Flush all nodes if the version doesn't match.
 	currentVer := make([]byte, binary.MaxVarintLen64)
 	currentVer = currentVer[:binary.PutVarint(currentVer, int64(version))]
 
-	blob, err := ldb.db.Get(ldb.ro,nodeDBVersionKey)
-	log.Info("UDP nodeDBVersionKey ","blob",blob)
-	if len(blob) == 0 {
-		if err := ldb.db.Put(ldb.wo,nodeDBVersionKey, currentVer); err != nil {
+	blob, err := db.Get(nodeDBVersionKey, nil)
+	switch err {
+	case leveldb.ErrNotFound:
+		// Version not found (i.e. empty cache), insert it
+		if err := db.Put(nodeDBVersionKey, currentVer, nil); err != nil {
 			db.Close()
 			return nil, err
 		}
-	} else{
+
+	case nil:
 		// Version present, flush if different
 		if !bytes.Equal(blob, currentVer) {
 			db.Close()
@@ -122,9 +127,8 @@ func newPersistentNodeDB(path string, version int, self NodeID) (*nodeDB, error)
 			return newPersistentNodeDB(path, version, self)
 		}
 	}
-
 	return &nodeDB{
-		lvl:  ldb,
+		lvl:  db,
 		self: self,
 		quit: make(chan struct{}),
 	}, nil
@@ -156,8 +160,8 @@ func splitKey(key []byte) (id NodeID, field string) {
 // fetchInt64 retrieves an integer instance associated with a particular
 // database key.
 func (db *nodeDB) fetchInt64(key []byte) int64 {
-	blob, _ := db.lvl.db.Get(db.lvl.ro,key)
-	if len(blob) == 0 {
+	blob, err := db.lvl.Get(key, nil)
+	if err != nil {
 		return 0
 	}
 	val, read := binary.Varint(blob)
@@ -173,13 +177,13 @@ func (db *nodeDB) storeInt64(key []byte, n int64) error {
 	blob := make([]byte, binary.MaxVarintLen64)
 	blob = blob[:binary.PutVarint(blob, n)]
 
-	return db.lvl.db.Put(db.lvl.wo,key, blob)
+	return db.lvl.Put(key, blob, nil)
 }
 
 // node retrieves a node with a given id from the database.
 func (db *nodeDB) node(id NodeID, subKey string) *Node {
-	blob, _ := db.lvl.db.Get(db.lvl.ro,makeKey(id, subKey))
-	if len(blob) == 0 {
+	blob, err := db.lvl.Get(makeKey(id, subKey), nil)
+	if err != nil {
 		return nil
 	}
 	node := new(Node)
@@ -197,16 +201,14 @@ func (db *nodeDB) updateNode(node *Node, subKey string) error {
 	if err != nil {
 		return err
 	}
-	return db.lvl.db.Put(db.lvl.wo,makeKey(node.ID, subKey), blob)
+	return db.lvl.Put(makeKey(node.ID, subKey), blob, nil)
 }
 
 // deleteNode deletes all information/keys associated with a node.
 func (db *nodeDB) deleteNode(id NodeID) error {
-	deleter := db.lvl.db.NewIterator(db.lvl.ro)
-	defer deleter.Close()
-	deleter.Seek(makeKey(id, ""))
-	for deleter.Valid() {
-		if err := db.lvl.db.Delete(db.lvl.wo,deleter.Key()); err != nil {
+	deleter := db.lvl.NewIterator(util.BytesPrefix(makeKey(id, "")), nil)
+	for deleter.Next() {
+		if err := db.lvl.Delete(deleter.Key(), nil); err != nil {
 			return err
 		}
 	}
@@ -249,10 +251,10 @@ func (db *nodeDB) expireNodes(subKeyRoot string, subKeyPong string) error {
 	threshold := time.Now().Add(-nodeDBNodeExpiration)
 
 	// Find discovered nodes that are older than the allowance
-	it := db.lvl.db.NewIterator(db.lvl.ro)
-	defer it.Close()
+	it := db.lvl.NewIterator(nil, nil)
+	defer it.Release()
 
-	for it.Valid() {
+	for it.Next() {
 		// Skip the item by root type
 		id, field := splitKey(it.Key())
 		if field != subKeyRoot {
@@ -307,10 +309,10 @@ func (db *nodeDB) querySeeds(forRole uint8, n int, subKeyRoot string, subKeyPong
 	var (
 		now   = time.Now()
 		nodes = make([]*Node, 0, n)
-		it    = db.lvl.db.NewIterator(db.lvl.ro)
+		it    = db.lvl.NewIterator(nil, nil)
 		id    NodeID
 	)
-	defer it.Close()
+	defer it.Release()
 
 seek:
 	for seeks := 0; len(nodes) < n && seeks < n*5; seeks++ {
@@ -348,17 +350,15 @@ seek:
 
 // reads the next node record from the iterator, skipping over other
 // database entries.
-func nextNode(it *levigo.Iterator, subkeyRoot string) *Node {
-	for it.Valid() {
+func nextNode(it iterator.Iterator, subkeyRoot string) *Node {
+	for end := false; !end; end = !it.Next() {
 		id, field := splitKey(it.Key())
 		if field != subkeyRoot {
-			it.Next()
 			continue
 		}
 		var n Node
 		if err := rlp.DecodeBytes(it.Value(), &n); err != nil {
 			log.Warn("Failed to decode node RLP", "id", id, "err", err)
-			it.Next()
 			continue
 		}
 		return &n
@@ -373,5 +373,5 @@ func (db *nodeDB) close() {
 	}
 	close(db.quit)
 	db.quited = true
-	db.lvl.db.Close()
+	db.lvl.Close()
 }
