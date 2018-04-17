@@ -67,6 +67,7 @@ func NewLDBDatabase(file string, cache int, handles int) (*LDBDatabase, error) {
 	opts.SetFilterPolicy(policy)
 	db, err := levigo.Open(file, opts)
 	if err != nil {
+		logger.Error("Open error","error",err,"opts",opts)
 		return nil, err
 	}
 	ro := levigo.NewReadOptions()
