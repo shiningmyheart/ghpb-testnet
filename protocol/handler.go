@@ -292,9 +292,9 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 	if err != nil {
 		return err
 	}
-	if msg.Size > ProtocolMaxMsgSize {
-		return errResp(ErrMsgTooLarge, "%v > %v", msg.Size, ProtocolMaxMsgSize)
-	}
+	//if msg.Size > ProtocolMaxMsgSize {
+	//	return errResp(ErrMsgTooLarge, "%v > %v", msg.Size, ProtocolMaxMsgSize)
+	//}
 	defer msg.Discard()
 
 	// Handle the message depending on its contents
