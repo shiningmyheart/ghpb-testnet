@@ -40,6 +40,7 @@ const (
 	chainHeadChanSize = 10
 	// rmTxChanSize is the size of channel listening to RemovedTransactionEvent.
 	rmTxChanSize = 10
+	maxFeedGoroutine = 50000
 )
 
 var (
@@ -199,7 +200,29 @@ type TxPool struct {
 	priced  *txPricedList                      // All transactions sorted by price
 
 	wg sync.WaitGroup // for shutdown sync
+	wgFeed FeedSignal // for feed send goroutine count
 
+}
+type FeedSignal struct {
+	//Threads chan int
+	Wg      sync.WaitGroup
+	Count 	int
+}
+func (fs *FeedSignal) P() {
+	if fs.Count > maxFeedGoroutine{
+		fs.Wait()
+	}
+	//fs.Threads <- 1
+	fs.Wg.Add(1)
+	fs.Count++
+}
+func (fs *FeedSignal) V() {
+	fs.Wg.Done()
+	fs.Count--
+	//<-fs.Threads
+}
+func (fs *FeedSignal) Wait() {
+	fs.Wg.Wait()
 }
 
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
@@ -220,6 +243,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		all:         make(map[common.Hash]*types.Transaction),
 		chainHeadCh: make(chan ChainHeadEvent, chainHeadChanSize),
 		gasPrice:    new(big.Int).SetUint64(config.PriceLimit),
+		wgFeed:		 FeedSignal{Count:0},
 	}
 	pool.locals = newAccountSet(pool.signer)
 	pool.priced = newTxPricedList(&pool.all)
@@ -725,7 +749,12 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 	// Set the potentially new pending nonce and notify any subsystems of the new tx
 	pool.beats[addr] = time.Now()
 	pool.pendingState.SetNonce(addr, tx.Nonce()+1)
-	go pool.txFeed.Send(TxPreEvent{tx})
+	pool.SendTx(TxPreEvent{tx})
+}
+func (pool *TxPool) SendTx(value interface{})  {
+	pool.wgFeed.P()
+	defer pool.wgFeed.V()
+	go pool.txFeed.Send(value)
 }
 
 // AddLocal enqueues a single transaction into the pool if it is valid, marking
