@@ -39,6 +39,7 @@ import (
 	"github.com/hpb-project/ghpb/network/p2p/discover"
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/common/rlp"
+	"github.com/hpb-project/ghpb/metrics"
 )
 
 const (
@@ -52,6 +53,11 @@ const (
 
 var (
 	daoChallengeTimeout = 15 * time.Second // Time allowance for a node to reply to the DAO handshake challenge
+
+	txCounter   = metrics.NewCounter("protocol/handle/tx")
+	broadCastTxCounter   = metrics.NewCounter("protocol/broadcast/tx")
+	broadCastBuffGauge   = metrics.NewGauge("protocol/broadcast/txbuf")
+
 )
 
 // errIncompatibleConfig is returned if the requested protocols and configs are
@@ -202,7 +208,8 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 
 	// broadcast transactions
 	pm.txCh = make(chan core.TxPreEvent, txChanSize)
-	pm.txSub = pm.txpool.SubscribeTxPreEvent(pm.txCh)
+	//pm.txSub = pm.txpool.SubscribeTxPreEvent(pm.txCh)
+	pm.txpool.RegisterTxBroadcastChan(pm.txCh)
 	go pm.txBroadcastLoop()
 
 	// broadcast mined blocks
@@ -217,7 +224,7 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 func (pm *ProtocolManager) Stop() {
 	log.Info("Stopping Hpb protocol")
 
-	pm.txSub.Unsubscribe()         // quits txBroadcastLoop
+	//pm.txSub.Unsubscribe()         // quits txBroadcastLoop
 	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
 
 	// Quit the sync loop.
@@ -388,7 +395,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if err := msg.Decode(&headers); err != nil {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
-		
+
 		// Filter out any explicitly requested headers, deliver the rest to the downloader
 		filter := len(headers) == 1
 		if filter {
@@ -602,6 +609,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if err := msg.Decode(&txs); err != nil {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
+		txCounter.Inc(int64(len(txs)))
 		for i, tx := range txs {
 			// Validate and mark the remote transaction
 			if tx == nil {
@@ -677,29 +685,39 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 
 // BroadcastTx will propagate a transaction to all peers which are not known to
 // already have the given transaction.
-func (pm *ProtocolManager) BroadcastTx(hash common.Hash, tx *types.Transaction) {
+func (pm *ProtocolManager) BroadcastTx(txs types.Transactions) {
+	if len(txs) == 0 {
+		return
+	}
 	// Broadcast transaction to a batch of peers not knowing about it
-	peers := pm.peers.PeersWithoutTx(hash)
-	//FIXME include this again: peers = peers[:int(math.Sqrt(float64(len(peers))))]
-	for _, peer := range peers {
-		if peer.RemoteType() == p2p.NtHpnode || peer.RemoteType() == p2p.NtPrenode {
-			peer.SendTransactions(types.Transactions{tx})
+	var ptxMap = make(map[*peer]types.Transactions)
+	for _, tx := range txs {
+		if tx != nil {
+			peers := pm.peers.PeersWithoutTx(tx.Hash())
+			for _,peer:=range peers{
+				ptxMap[peer] = append(ptxMap[peer],tx)
+			}
 		}
 	}
+	for peer,txs := range ptxMap {
+		//FIXME include this again: peers = peers[:int(math.Sqrt(float64(len(peers))))]
+			if peer.RemoteType() == p2p.NtHpnode || peer.RemoteType() == p2p.NtPrenode {
+				peer.SendTransactions(txs)
+				broadCastTxCounter.Inc(int64(len(txs)))
+			}
 
-	for _, peer := range peers {
-		if peer.RemoteType() == p2p.NtAccess {
-			peer.SendTransactions(types.Transactions{tx})
-		}
+			if peer.RemoteType() == p2p.NtAccess {
+				peer.SendTransactions(txs)
+				broadCastTxCounter.Inc(int64(len(txs)))
+			}
+
+			if peer.RemoteType() == p2p.NtLight {
+				peer.SendTransactions(txs)
+				broadCastTxCounter.Inc(int64(len(txs)))
+			}
+		log.Info("Broadcast transactions", "peer", peer.id, "count", len(txs))
 	}
 
-	for _, peer := range peers {
-		if peer.RemoteType() == p2p.NtLight {
-			peer.SendTransactions(types.Transactions{tx})
-		}
-	}
-
-	log.Trace("Broadcast transaction", "hash", hash, "recipients", len(peers))
 }
 
 // Mined broadcast loop
@@ -715,14 +733,37 @@ func (self *ProtocolManager) minedBroadcastLoop() {
 }
 
 func (self *ProtocolManager) txBroadcastLoop() {
+	var bufLen = 10000
+	timeout := time.NewTimer(1000 * time.Millisecond)
+	defer timeout.Stop()
+	var buf = make(types.Transactions,0)
 	for {
 		select {
 		case event := <-self.txCh:
-			self.BroadcastTx(event.Tx.Hash(), event.Tx)
-
+			if len(buf) + 1 == bufLen {
+				buf = append(buf,event.Tx)
+				log.Info("self.txCh append buf full","hash",event.Tx.Hash(),"bufLen",len(buf))
+				var start = time.Now()
+				self.BroadcastTx(buf)
+				log.Info("Batch BroadcastTx","count" , len(buf),"cost",common.PrettyDuration(time.Since(start)))
+				buf = make(types.Transactions, 0)
+				broadCastBuffGauge.Update(int64(len(buf)))
+			}else{
+				log.Info("self.txCh","hash",event.Tx.Hash(),"bufLen",len(buf))
+				buf = append(buf,event.Tx)
+				log.Info("self.txCh","hash",event.Tx.Hash(),"append",len(buf))
+				broadCastBuffGauge.Update(int64(len(buf)))
+			}
 		// Err() channel will be closed when unsubscribing.
-		case <-self.txSub.Err():
-			return
+		//case <-self.txSub.Err():
+		//	return
+		case <-timeout.C:
+			var start = time.Now()
+			self.BroadcastTx(buf)
+			log.Info("Period Batch BroadcastTx","count" , len(buf),"cost",common.PrettyDuration(time.Since(start)))
+			buf = make(types.Transactions, 0)
+			timeout.Reset(1000 * time.Millisecond)
+			broadCastBuffGauge.Update(int64(len(buf)))
 		}
 	}
 }

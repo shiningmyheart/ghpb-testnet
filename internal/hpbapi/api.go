@@ -38,8 +38,7 @@ import (
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/common/rlp"
 	"github.com/hpb-project/ghpb/network/rpc"
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/jmhodges/levigo"
 )
 
 const (
@@ -1088,7 +1087,7 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
 
-	wallet, err := s.b.AccountManager().Find(account)
+	_, err := s.b.AccountManager().Find(account)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -1107,15 +1106,15 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 	tx.SetFrom(&args.From)
-	var chainID *big.Int
-	if config := s.b.ChainConfig(); true {
-		chainID = config.ChainId
-	}
-	signed, err := wallet.SignTx(account, tx, chainID)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	return submitTransaction(ctx, s.b, signed)
+	//var chainID *big.Int
+	//if config := s.b.ChainConfig(); true {
+	//	chainID = config.ChainId
+	//}
+	//signed, err := wallet.SignTx(account, tx, chainID)
+	//if err != nil {
+	//	return common.Hash{}, err
+	//}
+	return submitTransaction(ctx, s.b, tx)
 }
 
 // SendRawTransaction will add the signed transaction to the transaction pool.
@@ -1296,7 +1295,7 @@ func NewPrivateDebugAPI(b Backend) *PrivateDebugAPI {
 // ChaindbProperty returns leveldb properties of the chain database.
 func (api *PrivateDebugAPI) ChaindbProperty(property string) (string, error) {
 	ldb, ok := api.b.ChainDb().(interface {
-		LDB() *leveldb.DB
+		LDB() *levigo.DB
 	})
 	if !ok {
 		return "", fmt.Errorf("chaindbProperty does not work for memory databases")
@@ -1306,23 +1305,19 @@ func (api *PrivateDebugAPI) ChaindbProperty(property string) (string, error) {
 	} else if !strings.HasPrefix(property, "leveldb.") {
 		property = "leveldb." + property
 	}
-	return ldb.LDB().GetProperty(property)
+	return ldb.LDB().PropertyValue(property),nil
 }
 
 func (api *PrivateDebugAPI) ChaindbCompact() error {
 	ldb, ok := api.b.ChainDb().(interface {
-		LDB() *leveldb.DB
+		LDB() *levigo.DB
 	})
 	if !ok {
 		return fmt.Errorf("chaindbCompact does not work for memory databases")
 	}
 	for b := byte(0); b < 255; b++ {
 		log.Info("Compacting chain database", "range", fmt.Sprintf("0x%0.2X-0x%0.2X", b, b+1))
-		err := ldb.LDB().CompactRange(util.Range{Start: []byte{b}, Limit: []byte{b + 1}})
-		if err != nil {
-			log.Error("Database compaction failed", "err", err)
-			return err
-		}
+		ldb.LDB().CompactRange(levigo.Range{Start: []byte{b}, Limit: []byte{b + 1}})
 	}
 	return nil
 }

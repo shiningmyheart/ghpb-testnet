@@ -161,7 +161,7 @@ func forEachKey(db hpbdb.Database, startPrefix, endPrefix []byte, fn func(key []
 		fn(common.CopyBytes(key))
 		it.Next()
 	}
-	it.Release()
+	it.Close()
 }
 
 var bloomBitsPrefix = []byte("bloomBits-")

@@ -44,7 +44,7 @@ import (
 	"github.com/hpb-project/ghpb/network/rpc"
 	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/protocol/downloader"
-	"github.com/hpb-project/ghpb/protocol/filters"
+	//"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/protocol/miner"
 	"github.com/hpb-project/ghpb/storage"
@@ -110,7 +110,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Hpb, error) {
 	if err != nil {
 		return nil, err
 	}
-	stopDbUpgrade := upgradeDeduplicateData(chainDb)
+	//stopDbUpgrade := upgradeDeduplicateData(chainDb)
 	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
@@ -125,7 +125,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Hpb, error) {
 		accountManager: ctx.AccountManager,
 		engine:         CreateConsensusEngine(ctx, config, chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
-		stopDbUpgrade:  stopDbUpgrade,
+		//stopDbUpgrade:  stopDbUpgrade,
 		networkId:      config.NetworkId,
 		gasPrice:       config.GasPrice,
 		hpberbase:      config.Hpberbase,
@@ -240,12 +240,14 @@ func (s *Hpb) APIs() []rpc.API {
 			Version:   "1.0",
 			Service:   NewPrivateMinerAPI(s),
 			Public:    false,
-		}, {
-			Namespace: "hpb",
-			Version:   "1.0",
-			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
-			Public:    true,
-		}, {
+		},
+		//{
+		//	Namespace: "hpb",
+		//	Version:   "1.0",
+		//	Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
+		//	Public:    true,
+		//},
+		{
 			Namespace: "admin",
 			Version:   "1.0",
 			Service:   NewPrivateAdminAPI(s),
@@ -375,9 +377,9 @@ func (s *Hpb) Start(srvr *p2p.Server) error {
 // Stop implements node.Service, terminating all internal goroutines used by the
 // Hpb protocol.
 func (s *Hpb) Stop() error {
-	if s.stopDbUpgrade != nil {
-		s.stopDbUpgrade()
-	}
+	//if s.stopDbUpgrade != nil {
+	//	s.stopDbUpgrade()
+	//}
 	s.bloomIndexer.Close()
 	s.blockchain.Stop()
 	s.protocolManager.Stop()

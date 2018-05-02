@@ -28,12 +28,14 @@ import (
 	"github.com/hpb-project/ghpb/network/p2p"
 	"github.com/hpb-project/ghpb/common/rlp"
 	"gopkg.in/fatih/set.v0"
+	"github.com/hpb-project/ghpb/metrics"
 )
 
 var (
 	errClosed            = errors.New("peer set is closed")
 	errAlreadyRegistered = errors.New("peer is already registered")
 	errNotRegistered     = errors.New("peer is not registered")
+	hasTxCounter   = metrics.NewCounter("peer/has/tx")
 )
 
 const (
@@ -381,6 +383,8 @@ func (ps *peerSet) PeersWithoutTx(hash common.Hash) []*peer {
 	for _, p := range ps.peers {
 		if !p.knownTxs.Has(hash) {
 			list = append(list, p)
+		}else {
+			hasTxCounter.Inc(1)
 		}
 	}
 	return list

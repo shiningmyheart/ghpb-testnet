@@ -38,11 +38,11 @@ import (
 	"github.com/hpb-project/ghpb/core/event"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/common/trie"
-	"github.com/syndtr/goleveldb/leveldb/util"
 	"gopkg.in/urfave/cli.v1"
 	
 	//"path/filepath"
 	//"io/ioutil"
+	"github.com/jmhodges/levigo"
 )
 
 var (
@@ -282,10 +282,7 @@ func importChain(ctx *cli.Context) error {
 	// Output pre-compaction stats mostly to see the import trashing
 	db := chainDb.(*hpbdb.LDBDatabase)
 
-	stats, err := db.LDB().GetProperty("leveldb.stats")
-	if err != nil {
-		utils.Fatalf("Failed to read database stats: %v", err)
-	}
+	stats := db.LDB().PropertyValue("leveldb.stats")
 	fmt.Println(stats)
 	fmt.Printf("Trie cache misses:  %d\n", trie.CacheMisses())
 	fmt.Printf("Trie cache unloads: %d\n\n", trie.CacheUnloads())
@@ -306,15 +303,10 @@ func importChain(ctx *cli.Context) error {
 	// Compact the entire database to more accurately measure disk io and print the stats
 	start = time.Now()
 	fmt.Println("Compacting entire database...")
-	if err = db.LDB().CompactRange(util.Range{}); err != nil {
-		utils.Fatalf("Compaction failed: %v", err)
-	}
+	db.LDB().CompactRange(levigo.Range{})
 	fmt.Printf("Compaction done in %v.\n\n", time.Since(start))
 
-	stats, err = db.LDB().GetProperty("leveldb.stats")
-	if err != nil {
-		utils.Fatalf("Failed to read database stats: %v", err)
-	}
+	stats = db.LDB().PropertyValue("leveldb.stats")
 	fmt.Println(stats)
 
 	return nil
@@ -392,9 +384,7 @@ func copyDb(ctx *cli.Context) error {
 	// Compact the entire database to remove any sync overhead
 	start = time.Now()
 	fmt.Println("Compacting entire database...")
-	if err = chainDb.(*hpbdb.LDBDatabase).LDB().CompactRange(util.Range{}); err != nil {
-		utils.Fatalf("Compaction failed: %v", err)
-	}
+	chainDb.(*hpbdb.LDBDatabase).LDB().CompactRange(levigo.Range{})
 	fmt.Printf("Compaction done in %v.\n\n", time.Since(start))
 
 	return nil

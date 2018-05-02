@@ -72,6 +72,13 @@ func NewCounter(name string) metrics.Counter {
 	return metrics.GetOrRegisterCounter(strings.NewReplacer("/","_").Replace(name), metrics.DefaultRegistry)
 }
 
+func NewGauge(name string) metrics.Gauge {
+	if !Enabled {
+		return new(metrics.NilGauge)
+	}
+	return metrics.GetOrRegisterGauge(strings.NewReplacer("/","_").Replace(name), metrics.DefaultRegistry)
+}
+
 // NewMeter create a new metrics Meter, either a real one of a NOP stub depending
 // on the metrics flag.
 func NewMeter(name string) metrics.Meter {

@@ -195,6 +195,12 @@
 			"revisionTime": "2016-06-03T03:41:37Z"
 		},
 		{
+			"checksumSHA1": "ARgBZHKgxjcZ0RiKpJS5ke4burg=",
+			"path": "github.com/jmhodges/levigo",
+			"revision": "c42d9e0ca023e2198120196f842701bb4c55d7b9",
+			"revisionTime": "2016-11-15T19:34:49Z"
+		},
+		{
 			"checksumSHA1": "gKyBj05YkfuLFruAyPZ4KV9nFp8=",
 			"path": "github.com/julienschmidt/httprouter",
 			"revision": "975b5c4c7c21c0e3d2764200bf2aa8e34657ae6e",
