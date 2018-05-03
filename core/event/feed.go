@@ -20,9 +20,15 @@ import (
 	"errors"
 	"reflect"
 	"sync"
+	"strconv"
+	"runtime"
+	"github.com/hpb-project/ghpb/common/log"
 )
 
 var errBadChannel = errors.New("event: Subscribe argument does not have sendable channel type")
+const (
+	maxFeedGoroutine = 10000
+)
 
 // Feed implements one-to-many subscriptions where the carrier of events is a channel.
 // Values sent to a Feed are delivered to all subscribed channels simultaneously.
@@ -43,6 +49,29 @@ type Feed struct {
 	inbox  caseList
 	etype  reflect.Type
 	closed bool
+	wgFeed FeedSignal // for feed send goroutine count
+}
+type FeedSignal struct {
+	Wg      sync.WaitGroup
+	Count 	int
+}
+func (fs *Feed) P() {
+	fs.mu.Lock()
+	cc :=runtime.NumGoroutine()
+	if cc > maxFeedGoroutine{
+		log.Info("------------------count :",strconv.Itoa(fs.wgFeed.Count),"--------goroutine num: ",strconv.Itoa(cc))
+		fs.Wait()
+	}
+	fs.mu.Unlock()
+	fs.wgFeed.Wg.Add(1)
+	fs.wgFeed.Count++
+}
+func (fs *Feed) V() {
+	fs.wgFeed.Wg.Done()
+	fs.wgFeed.Count--
+}
+func (fs *Feed) Wait() {
+	fs.wgFeed.Wg.Wait()
 }
 
 // This is the index of the first actual subscription channel in sendCases.

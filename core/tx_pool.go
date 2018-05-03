@@ -42,7 +42,6 @@ const (
 	chainHeadChanSize = 10
 	// rmTxChanSize is the size of channel listening to RemovedTransactionEvent.
 	rmTxChanSize = 10
-	maxFeedGoroutine = 10000
 )
 
 var (
@@ -202,32 +201,6 @@ type TxPool struct {
 	priced  *txPricedList                      // All transactions sorted by price
 
 	wg sync.WaitGroup // for shutdown sync
-	wgFeed FeedSignal // for feed send goroutine count
-
-}
-type FeedSignal struct {
-	//Threads chan int
-	Wg      sync.WaitGroup
-	Count 	int
-}
-func (fs *TxPool) P() {
-	cc :=runtime.NumGoroutine()
-	
-	if cc > maxFeedGoroutine{
-		log.Info("------------------count :",strconv.Itoa(fs.wgFeed.Count),"--------goroutine num: ",strconv.Itoa(cc))
-		fs.Wait()
-	}
-	//fs.Threads <- 1
-	fs.wgFeed.Wg.Add(1)
-	fs.wgFeed.Count++
-}
-func (fs *TxPool) V() {
-	fs.wgFeed.Wg.Done()
-	fs.wgFeed.Count--
-	//<-fs.Threads
-}
-func (fs *TxPool) Wait() {
-	fs.wgFeed.Wg.Wait()
 }
 
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
@@ -248,7 +221,6 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		all:         make(map[common.Hash]*types.Transaction),
 		chainHeadCh: make(chan ChainHeadEvent, chainHeadChanSize),
 		gasPrice:    new(big.Int).SetUint64(config.PriceLimit),
-		wgFeed:		 FeedSignal{Count:0},
 	}
 	pool.locals = newAccountSet(pool.signer)
 	pool.priced = newTxPricedList(&pool.all)
@@ -757,8 +729,8 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 	pool.SendTx(TxPreEvent{tx})
 }
 func (pool *TxPool) SendTx(value interface{})  {
-	pool.P()
-	defer pool.V()
+	pool.txFeed.P()
+	defer pool.txFeed.V()
 	go pool.txFeed.Send(value)
 }
 
