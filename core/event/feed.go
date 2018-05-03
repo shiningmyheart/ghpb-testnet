@@ -27,7 +27,7 @@ import (
 
 var errBadChannel = errors.New("event: Subscribe argument does not have sendable channel type")
 const (
-	maxFeedGoroutine = 10000
+	maxFeedGoroutine = 5000
 )
 
 // Feed implements one-to-many subscriptions where the carrier of events is a channel.

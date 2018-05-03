@@ -33,8 +33,6 @@ import (
 	"github.com/hpb-project/ghpb/metrics"
 	"github.com/hpb-project/ghpb/common/constant"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
-	"strconv"
-	"runtime"
 )
 
 const (
