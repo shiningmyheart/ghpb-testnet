@@ -33,6 +33,8 @@ import (
 	"github.com/hpb-project/ghpb/metrics"
 	"github.com/hpb-project/ghpb/common/constant"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
+	"strconv"
+	"runtime"
 )
 
 const (
@@ -40,7 +42,7 @@ const (
 	chainHeadChanSize = 10
 	// rmTxChanSize is the size of channel listening to RemovedTransactionEvent.
 	rmTxChanSize = 10
-	maxFeedGoroutine = 50000
+	maxFeedGoroutine = 10000
 )
 
 var (
@@ -208,21 +210,24 @@ type FeedSignal struct {
 	Wg      sync.WaitGroup
 	Count 	int
 }
-func (fs *FeedSignal) P() {
-	if fs.Count > maxFeedGoroutine{
+func (fs *TxPool) P() {
+	cc :=runtime.NumGoroutine()
+	
+	if cc > maxFeedGoroutine{
+		log.Info("------------------count :",strconv.Itoa(fs.wgFeed.Count),"--------goroutine num: ",strconv.Itoa(cc))
 		fs.Wait()
 	}
 	//fs.Threads <- 1
-	fs.Wg.Add(1)
-	fs.Count++
+	fs.wgFeed.Wg.Add(1)
+	fs.wgFeed.Count++
 }
-func (fs *FeedSignal) V() {
-	fs.Wg.Done()
-	fs.Count--
+func (fs *TxPool) V() {
+	fs.wgFeed.Wg.Done()
+	fs.wgFeed.Count--
 	//<-fs.Threads
 }
-func (fs *FeedSignal) Wait() {
-	fs.Wg.Wait()
+func (fs *TxPool) Wait() {
+	fs.wgFeed.Wg.Wait()
 }
 
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
@@ -752,8 +757,8 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 	pool.SendTx(TxPreEvent{tx})
 }
 func (pool *TxPool) SendTx(value interface{})  {
-	pool.wgFeed.P()
-	defer pool.wgFeed.V()
+	pool.P()
+	defer pool.V()
 	go pool.txFeed.Send(value)
 }
 
