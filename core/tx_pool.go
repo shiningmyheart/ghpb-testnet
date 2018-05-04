@@ -725,12 +725,9 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 	// Set the potentially new pending nonce and notify any subsystems of the new tx
 	pool.beats[addr] = time.Now()
 	pool.pendingState.SetNonce(addr, tx.Nonce()+1)
-	pool.SendTx(TxPreEvent{tx})
+	go pool.txFeed.Send(TxPreEvent{tx})
 }
-func (pool *TxPool) SendTx(value interface{})  {
-	pool.txFeed.P()
-	go pool.txFeed.Send(value)
-}
+
 
 // AddLocal enqueues a single transaction into the pool if it is valid, marking
 // the sender as a local one in the mean time, ensuring it goes around the local

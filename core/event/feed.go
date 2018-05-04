@@ -151,6 +151,8 @@ func (f *Feed) remove(sub *feedSub) {
 // It returns the number of subscribers that the value was sent to.
 func (f *Feed) Send(value interface{}) (nsent int) {
 
+	f.P()
+
 	f.once.Do(f.init)
 	<-f.sendLock
 
