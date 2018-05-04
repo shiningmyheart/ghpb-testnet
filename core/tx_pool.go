@@ -219,6 +219,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		all:         make(map[common.Hash]*types.Transaction),
 		chainHeadCh: make(chan ChainHeadEvent, chainHeadChanSize),
 		gasPrice:    new(big.Int).SetUint64(config.PriceLimit),
+		txFeed:		 event.Feed{Wg:sync.WaitGroup{}},
 	}
 	pool.locals = newAccountSet(pool.signer)
 	pool.priced = newTxPricedList(&pool.all)
@@ -728,7 +729,6 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 }
 func (pool *TxPool) SendTx(value interface{})  {
 	pool.txFeed.P()
-	defer pool.txFeed.V()
 	go pool.txFeed.Send(value)
 }
 

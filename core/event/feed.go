@@ -49,7 +49,7 @@ type Feed struct {
 	inbox  caseList
 	etype  reflect.Type
 	closed bool
-	wg  sync.WaitGroup // for feed send goroutine count
+	Wg     sync.WaitGroup // for feed send goroutine count
 }
 func (fs *Feed) P() {
 	fs.mu.Lock()
@@ -59,13 +59,13 @@ func (fs *Feed) P() {
 		fs.Wait()
 	}
 	fs.mu.Unlock()
-	fs.wg.Add(1)
+	fs.Wg.Add(1)
 }
 func (fs *Feed) V() {
-	fs.wg.Done()
+	fs.Wg.Done()
 }
 func (fs *Feed) Wait() {
-	fs.wg.Wait()
+	fs.Wg.Wait()
 }
 
 // This is the index of the first actual subscription channel in sendCases.
@@ -206,6 +206,7 @@ func (f *Feed) Send(value interface{}) (nsent int) {
 		f.sendCases[i].Send = reflect.Value{}
 	}
 	f.sendLock <- struct{}{}
+	f.V()
 	return nsent
 }
 
