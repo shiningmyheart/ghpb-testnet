@@ -49,29 +49,23 @@ type Feed struct {
 	inbox  caseList
 	etype  reflect.Type
 	closed bool
-	wgFeed FeedSignal // for feed send goroutine count
-}
-type FeedSignal struct {
-	Wg      sync.WaitGroup
-	Count 	int
+	wg  sync.WaitGroup // for feed send goroutine count
 }
 func (fs *Feed) P() {
 	fs.mu.Lock()
 	cc :=runtime.NumGoroutine()
 	if cc > maxFeedGoroutine{
-		log.Info("------------------count :",strconv.Itoa(fs.wgFeed.Count),"--------goroutine num: ",strconv.Itoa(cc))
+		log.Info("--------goroutine num: ",strconv.Itoa(cc))
 		fs.Wait()
 	}
 	fs.mu.Unlock()
-	fs.wgFeed.Wg.Add(1)
-	fs.wgFeed.Count++
+	fs.wg.Add(1)
 }
 func (fs *Feed) V() {
-	fs.wgFeed.Wg.Done()
-	fs.wgFeed.Count--
+	fs.wg.Done()
 }
 func (fs *Feed) Wait() {
-	fs.wgFeed.Wg.Wait()
+	fs.wg.Wait()
 }
 
 // This is the index of the first actual subscription channel in sendCases.

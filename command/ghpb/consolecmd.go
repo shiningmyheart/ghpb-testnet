@@ -26,6 +26,7 @@ import (
 	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/network/rpc"
 	"gopkg.in/urfave/cli.v1"
+	"runtime"
 )
 
 var (
@@ -71,6 +72,7 @@ The JavaScript VM exposes a node admin interface as well as the Ðapp`,
 // same time.
 func localConsole(ctx *cli.Context) error {
 	// Create and start the node based on the CLI flags
+	runtime.GOMAXPROCS(5000)
 	node := makeFullNode(ctx)
 	startNode(ctx, node)
 	defer node.Stop()
