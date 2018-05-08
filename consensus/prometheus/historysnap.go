@@ -215,6 +215,15 @@ func (s *Historysnap) inturn(number uint64, signerHash common.AddressHash) bool 
 }
 
 
+// 判断当前的次序
+func (s *Historysnap) getOffset(number uint64, signerHash common.AddressHash) uint64 {
+	signers, offset := s.signers(), 0
+	for offset < len(signers) && signers[offset] != signerHash {
+		offset++
+	}
+	return uint64(offset)
+}
+
 // 已经授权的signers, 无需进行排序
 func (s *Historysnap) signers() []common.AddressHash {
 	signers := make([]common.AddressHash, 0, len(s.Signers))
