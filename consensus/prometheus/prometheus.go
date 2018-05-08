@@ -622,7 +622,7 @@ func (c *Prometheus) Seal(chain consensus.ChainReader, block *types.Block, stop 
 		offset := snap.getOffset(header.Number.Uint64(), signerHash)
 
        //在一定范围内延迟8分,当前的currentIndex往前的没有超过
-       if(currentIndex <= len(snap.Signers)/2){
+       if(currentIndex <= uint64(len(snap.Signers)/2)){
 	       if(offset - currentIndex <= uint64(len(snap.Signers)/2)){
 				wiggle = time.Duration(1000) * wiggleTime
 				log.Info("$$$$$$$$$$$$$$$$$$$$$$$","less than half",common.PrettyDuration(wiggle))
