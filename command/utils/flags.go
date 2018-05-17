@@ -47,7 +47,7 @@ import (
 	"github.com/hpb-project/ghpb/metrics"
 	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/network/p2p"
-	"github.com/hpb-project/ghpb/network/p2p/discover"
+	"github.com/hpb-project/ghpb/network/p2p/nodetable"
 	"github.com/hpb-project/ghpb/network/p2p/nat"
 	"github.com/hpb-project/ghpb/network/p2p/netutil"
 	"github.com/hpb-project/ghpb/common/constant"
@@ -512,9 +512,9 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		urls = params.TestnetBootnodes
 	}
 
-	cfg.BootstrapNodes = make([]*discover.Node, 0, len(urls))
+	cfg.BootstrapNodes = make([]*nodetable.Node, 0, len(urls))
 	for _, url := range urls {
-		node, err := discover.ParseNode(url)
+		node, err := nodetable.ParseNode(url)
 		if err != nil {
 			log.Error("Bootstrap URL invalid", "hnode", url, "err", err)
 			continue

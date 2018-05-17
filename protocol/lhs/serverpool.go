@@ -31,7 +31,7 @@ import (
 	"github.com/hpb-project/ghpb/storage"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/network/p2p"
-	"github.com/hpb-project/ghpb/network/p2p/discover"
+	"github.com/hpb-project/ghpb/network/p2p/nodetable"
 	"github.com/hpb-project/ghpb/network/p2p/discv5"
 	"github.com/hpb-project/ghpb/common/rlp"
 )
@@ -108,7 +108,7 @@ type serverPool struct {
 	discNodes     chan *discv5.Node
 	discLookups   chan bool
 
-	entries              map[discover.NodeID]*poolEntry
+	entries              map[nodetable.NodeID]*poolEntry
 	lock                 sync.Mutex
 	timeout, enableRetry chan *poolEntry
 	adjustStats          chan poolStatAdjust
@@ -125,7 +125,7 @@ func newServerPool(db hpbdb.Database, quit chan struct{}, wg *sync.WaitGroup) *s
 		db:           db,
 		quit:         quit,
 		wg:           wg,
-		entries:      make(map[discover.NodeID]*poolEntry),
+		entries:      make(map[nodetable.NodeID]*poolEntry),
 		timeout:      make(chan *poolEntry, 1),
 		adjustStats:  make(chan poolStatAdjust, 100),
 		enableRetry:  make(chan *poolEntry, 1),
@@ -315,7 +315,7 @@ func (pool *serverPool) eventLoop() {
 
 		case node := <-pool.discNodes:
 			pool.lock.Lock()
-			entry := pool.findOrNewNode(discover.NodeID(node.ID), node.IP, node.TCP)
+			entry := pool.findOrNewNode(nodetable.NodeID(node.ID), node.IP, node.TCP)
 			pool.updateCheckDial(entry)
 			pool.lock.Unlock()
 
@@ -346,7 +346,7 @@ func (pool *serverPool) eventLoop() {
 	}
 }
 
-func (pool *serverPool) findOrNewNode(id discover.NodeID, ip net.IP, port uint16) *poolEntry {
+func (pool *serverPool) findOrNewNode(id nodetable.NodeID, ip net.IP, port uint16) *poolEntry {
 	now := mclock.Now()
 	entry := pool.entries[id]
 	if entry == nil {
@@ -507,7 +507,7 @@ func (pool *serverPool) dial(entry *poolEntry, knownSelected bool) {
 	log.Debug("Dialing new peer", "lesaddr", entry.id.String()+"@"+addr.strKey(), "set", len(entry.addr), "known", knownSelected)
 	entry.dialed = addr
 	go func() {
-		pool.server.AddPeer(discover.NewNode(entry.id, discover.LightRole, addr.ip, addr.port, addr.port))
+		pool.server.AddPeer(nodetable.NewNode(entry.id, nodetable.LightRole, addr.ip, addr.port, addr.port))
 		select {
 		case <-pool.quit:
 		case <-time.After(dialTimeout):
@@ -547,7 +547,7 @@ const (
 // poolEntry represents a server node and stores its current state and statistics.
 type poolEntry struct {
 	peer                  *peer
-	id                    discover.NodeID
+	id                    nodetable.NodeID
 	addr                  map[string]*poolEntryAddress
 	lastConnected, dialed *poolEntryAddress
 	addrSelect            weightedRandomSelect
@@ -571,7 +571,7 @@ func (e *poolEntry) EncodeRLP(w io.Writer) error {
 
 func (e *poolEntry) DecodeRLP(s *rlp.Stream) error {
 	var entry struct {
-		ID                         discover.NodeID
+		ID                         nodetable.NodeID
 		IP                         net.IP
 		Port                       uint16
 		Fails                      uint

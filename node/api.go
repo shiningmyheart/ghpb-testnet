@@ -25,7 +25,7 @@ import (
 	"github.com/hpb-project/ghpb/common/hexutil"
 	"github.com/hpb-project/ghpb/common/crypto"
 	"github.com/hpb-project/ghpb/network/p2p"
-	"github.com/hpb-project/ghpb/network/p2p/discover"
+	"github.com/hpb-project/ghpb/network/p2p/nodetable"
 	"github.com/hpb-project/ghpb/network/rpc"
 	"github.com/rcrowley/go-metrics"
 )
@@ -51,7 +51,7 @@ func (api *PrivateAdminAPI) AddPeer(url string) (bool, error) {
 		return false, ErrNodeStopped
 	}
 	// Try to add the url as a static peer and return
-	node, err := discover.ParseNode(url)
+	node, err := nodetable.ParseNode(url)
 	if err != nil {
 		return false, fmt.Errorf("invalid hnode: %v", err)
 	}
@@ -67,7 +67,7 @@ func (api *PrivateAdminAPI) RemovePeer(url string) (bool, error) {
 		return false, ErrNodeStopped
 	}
 	// Try to remove the url as a static peer and return
-	node, err := discover.ParseNode(url)
+	node, err := nodetable.ParseNode(url)
 	if err != nil {
 		return false, fmt.Errorf("invalid hnode: %v", err)
 	}

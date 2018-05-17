@@ -35,7 +35,7 @@ import (
 	"github.com/hpb-project/ghpb/protocol/lhs/flowcontrol"
 	"github.com/hpb-project/ghpb/protocol/light"
 	"github.com/hpb-project/ghpb/network/p2p"
-	"github.com/hpb-project/ghpb/network/p2p/discover"
+	"github.com/hpb-project/ghpb/network/p2p/nodetable"
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/hpb-project/ghpb/consensus/prometheus"
 )
