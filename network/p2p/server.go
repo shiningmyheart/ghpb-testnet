@@ -422,8 +422,6 @@ func (srv *Server) Start() (err error) {
 
 		srv.ntabLight      = hpb_nt.LightTab
 		srv.ntabAccess     = hpb_nt.AccessTab
-		srv.nstaticHpnode  = hpb_nt.CommCrowd
-		srv.nstaticPrenode = hpb_nt.PreCommCrowd
 	}
 
 
