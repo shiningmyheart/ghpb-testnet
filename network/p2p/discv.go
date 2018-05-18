@@ -33,6 +33,7 @@ const(
 	NtAccess   NodeType = 0x40
 	NtLight    NodeType = 0x50
 )
+
 // NodeType to string
 func (pt NodeType)String() string {
 	switch pt {
@@ -58,20 +59,20 @@ func (pt NodeType)Uint8() uint8 {
 
 // Convert NodeType to discover role
 func (pt NodeType)ToDiscv() uint8 {
-	disc := nodetable.UnKnowRole
+	disc := nodetable.UnKnowNode
 	switch pt {
 	case NtUnknown:
-		disc = nodetable.UnKnowRole
+		disc = nodetable.UnKnowNode
 	case NtPublic:
-		disc = nodetable.BootRole
+		disc = nodetable.BootNode
 	case NtHpnode:
-		disc = nodetable.HpRole
+		disc = nodetable.HpNode
 	case NtPrenode:
-		disc = nodetable.PreRole
+		disc = nodetable.HpNode
 	case NtAccess:
-		disc = nodetable.AccessRole
+		disc = nodetable.PreNode
 	case NtLight:
-		disc = nodetable.LightRole
+		disc = nodetable.LightNode
 	}
 	return disc
 }
@@ -79,15 +80,13 @@ func (pt NodeType)ToDiscv() uint8 {
 // Convert uint8 to NodeType
 func Uint8ToNodeType(discNt uint8) NodeType {
 	switch discNt {
-	case nodetable.BootRole:
+	case nodetable.BootNode:
 		return NtPublic
-	case nodetable.HpRole:
+	case nodetable.HpNode:
 		return NtHpnode
-	case nodetable.PreRole:
-		return NtPrenode
-	case nodetable.AccessRole:
+	case nodetable.PreNode:
 		return NtAccess
-	case nodetable.LightRole:
+	case nodetable.LightNode:
 		return NtLight
 	}
 	log.Debug("NodeType unknown ","uint8",discNt, "stack",debug.Stack())

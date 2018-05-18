@@ -507,7 +507,7 @@ func (pool *serverPool) dial(entry *poolEntry, knownSelected bool) {
 	log.Debug("Dialing new peer", "lesaddr", entry.id.String()+"@"+addr.strKey(), "set", len(entry.addr), "known", knownSelected)
 	entry.dialed = addr
 	go func() {
-		pool.server.AddPeer(nodetable.NewNode(entry.id, nodetable.LightRole, addr.ip, addr.port, addr.port))
+		pool.server.AddPeer(nodetable.NewNode(entry.id, nodetable.LightNode, addr.ip, addr.port, addr.port))
 		select {
 		case <-pool.quit:
 		case <-time.After(dialTimeout):

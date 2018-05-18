@@ -432,12 +432,9 @@ func (srv *Server) Start() (err error) {
 
 	for _, n := range srv.StaticNodes {
 		switch n.Role {
-		case nodetable.HpRole:
+		case nodetable.HpNode:
 			srv.nstaticHpnode.Add(n)
 			log.Debug("Add one hpnode node to discover.","NodeID",n.ID,"IP",n.IP,"Port",n.TCP)
-		case nodetable.PreRole:
-			srv.nstaticPrenode.Add(n)
-			log.Debug("Add one prenode node to discover.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
 		default:
 			log.Debug("Type is not accept to add in static node.","NodeID",n.ID,"NodeIP",n.IP,"Port",n.TCP)
 		}
