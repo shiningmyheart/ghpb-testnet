@@ -51,8 +51,6 @@ type PeerInfo struct {
 }
 
 type peer struct {
-	id string
-
 	*p2p.Peer
 	rw p2p.MsgReadWriter
 
@@ -62,6 +60,8 @@ type peer struct {
 	td   *big.Int
 	lock sync.RWMutex
 
+
+	id string
 	knownTxs    *set.Set // Set of transaction hashes known to be known by this peer
 	knownBlocks *set.Set // Set of block hashes known to be known by this peer
 }

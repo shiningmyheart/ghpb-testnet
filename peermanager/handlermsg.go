@@ -72,6 +72,8 @@ type ProtocolManager struct {
 	blockchain  *core.BlockChain
 	chaindb     hpbdb.Database
 	chainconfig *params.ChainConfig
+
+
 	maxPeers    int
 
 	downloader *downloader.Downloader
