@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/hpb-project/ghpb/command/utils"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/common/constant"
 	"gopkg.in/urfave/cli.v1"
 )

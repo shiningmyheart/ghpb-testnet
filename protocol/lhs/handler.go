@@ -31,7 +31,7 @@ import (
 	"github.com/hpb-project/ghpb/core"
 	"github.com/hpb-project/ghpb/core/state"
 	"github.com/hpb-project/ghpb/core/types"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/storage"
 	"github.com/hpb-project/ghpb/core/event"

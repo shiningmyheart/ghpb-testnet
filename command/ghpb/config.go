@@ -30,7 +30,7 @@ import (
 
 	"github.com/hpb-project/ghpb/command/utils"
 	"github.com/hpb-project/ghpb/contracts/release"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/node"
 	"github.com/hpb-project/ghpb/common/constant"
 	"github.com/naoina/toml"

@@ -27,7 +27,7 @@ import (
 
 	"github.com/hpb-project/ghpb/account/abi/bind"
 	"github.com/hpb-project/ghpb/common"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/internal/hpbapi"
 	"github.com/hpb-project/ghpb/protocol/lhs"
 	"github.com/hpb-project/ghpb/common/log"

@@ -26,7 +26,7 @@ import (
 
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/core/types"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/protocol/lhs/flowcontrol"
 	"github.com/hpb-project/ghpb/network/p2p"
 	"github.com/hpb-project/ghpb/common/rlp"

@@ -30,7 +30,7 @@ import (
 	"github.com/hpb-project/ghpb/command/utils"
 	"github.com/hpb-project/ghpb/common"
 	"github.com/hpb-project/ghpb/console"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/internal/debug"
 	"github.com/hpb-project/ghpb/common/log"
 	"github.com/hpb-project/ghpb/metrics"

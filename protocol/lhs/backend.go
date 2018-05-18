@@ -35,7 +35,7 @@ import (
 	"github.com/hpb-project/ghpb/network/p2p/discv5"
 	rpc "github.com/hpb-project/ghpb/network/rpc"
 	"github.com/hpb-project/ghpb/node"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/protocol/filters"
 	"github.com/hpb-project/ghpb/protocol/gasprice"

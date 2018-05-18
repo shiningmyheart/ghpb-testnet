@@ -37,7 +37,7 @@ import (
 	"github.com/hpb-project/ghpb/core/state"
 	"github.com/hpb-project/ghpb/core/vm"
 	"github.com/hpb-project/ghpb/common/crypto"
-	"github.com/hpb-project/ghpb/protocol"
+	"github.com/hpb-project/ghpb/peermanager"
 	"github.com/hpb-project/ghpb/protocol/downloader"
 	"github.com/hpb-project/ghpb/protocol/gasprice"
 	"github.com/hpb-project/ghpb/storage"
